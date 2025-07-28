@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyHUB - Ur Links In 1 Place</title>
+    <style>
+        :root {
+            --bg-color: #1a202c; --card-bg-color: #2d3748; --text-color: #e2e8f0;
+            --subtitle-color: #a0aec0; --border-color: #4a5568; --primary-accent: #4299e1;
+            --primary-accent-shadow: rgba(66, 153, 225, 0.2); --link-bg: #1c1c1e;
+            --link-text: #ffdd57; --link-hover-bg: #333333; --link-hover-text: #ffffff;
+            --button-green: #38a169; --button-grey: #718096; --error-red: #e53e3e;
+            --icon-color: #a0aec0; --icon-hover-color: #ffffff;
+        }
+        body.light-theme {
+            --bg-color: #f7fafc; --card-bg-color: #ffffff; --text-color: #2d3748;
+            --subtitle-color: #718096; --border-color: #cbd5e0; --primary-accent: #3182ce;
+            --primary-accent-shadow: rgba(49, 130, 206, 0.2); --link-bg: #edf2f7;
+            --link-text: #2b6cb0; --link-hover-bg: #e2e8f0; --link-hover-text: #1a202c;
+            --icon-color: #718096; --icon-hover-color: #2d3748;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color); color: var(--text-color); display: flex;
+            justify-content: center; align-items: center; min-height: 100vh;
+            margin: 0; padding: 40px 20px; box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        #background-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        .container { width: 100%; max-width: 480px; }
+        .dashboard, .auth-container {
+            text-align: center; background-color: var(--card-bg-color); padding: 40px;
+            border-radius: 16px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            position: relative; z-index: 1;
+        }
+        .auth-container { display: block; }
+        .dashboard { display: none; }
+        .top-controls { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; }
+        .icon-button {
+            background: none; border: 2px solid var(--border-color); color: var(--subtitle-color);
+            width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px;
+            display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;
+        }
+        .icon-button:hover { border-color: var(--primary-accent); color: var(--primary-accent); }
+        .logo-container { margin-bottom: 20px; }
+        .logo-svg { width: 60px; height: 60px; }
+        h1 {
+            font-family: 'Playfair Display', serif; margin-top: 0; margin-bottom: 0;
+            font-size: 42px; font-weight: 700; color: var(--text-color);
+        }
+        .subtitle {
+            font-family: 'Lobster', cursive; font-size: 24px; font-weight: 400;
+            color: var(--subtitle-color); margin-top: 5px; margin-bottom: 30px; letter-spacing: 1px;
+        }
+        #search-bar {
+            width: 100%; padding: 12px; margin-bottom: 20px;
+            background-color: var(--bg-color); border: 1px solid var(--border-color);
+            border-radius: 8px; color: var(--text-color); font-size: 14px; box-sizing: border-box;
+        }
+        .tab-nav {
+            display: flex; justify-content: center; background-color: var(--bg-color);
+            border-radius: 12px; padding: 5px; margin-bottom: 25px;
+        }
+        .tab-link {
+            font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 14px;
+            color: var(--subtitle-color); background: none; border: none; padding: 10px 15px;
+            cursor: pointer; transition: all 0.3s ease; border-radius: 8px; flex: 1;
+        }
+        .tab-link:hover { background-color: var(--border-color); color: var(--text-color); }
+        .tab-link.active {
+            background-color: var(--primary-accent); color: #ffffff;
+            box-shadow: 0 4px 12px var(--primary-accent-shadow);
+        }
+        .tab-content { display: none; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .button-container { display: flex; flex-direction: column; gap: 15px; }
+        .link-item {
+            display: flex; align-items: center; background: var(--link-bg);
+            border-radius: 12px; transition: transform 0.2s ease, background-color 0.2s ease;
+            word-wrap: break-word; cursor: grab;
+        }
+        .link-item:hover { transform: translateY(-2px); background-color: var(--link-hover-bg); }
+        .link-content { flex-grow: 1; text-align: left; padding: 16px 0 16px 20px; }
+        .link-icon { font-size: 20px; margin-right: 12px; }
+        .link-item a {
+            color: var(--link-text); text-decoration: none; font-size: 16px; font-weight: 600;
+        }
+        .link-item:hover a { color: var(--link-hover-text); }
+        .item-actions { display: flex; padding-right: 10px; align-items: center; }
+        .action-btn {
+            background: none; border: none; color: var(--icon-color); cursor: pointer;
+            font-size: 20px; padding: 8px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; transition: background-color 0.2s, color 0.2s;
+        }
+        .action-btn:hover { color: var(--icon-hover-color); background-color: rgba(144, 144, 144, 0.2); }
+        .add-button-section { margin-top: 20px; }
+        .add-button {
+            background: none; border: 2px dashed var(--border-color); color: var(--subtitle-color);
+            padding: 12px; width: 100%; border-radius: 12px; cursor: pointer;
+            font-weight: 600; transition: all 0.3s ease;
+        }
+        .add-button:hover { background-color: var(--border-color); color: var(--text-color); border-style: solid; }
+        .add-form, .auth-form {
+            display: flex; margin-top: 20px; padding: 20px; background-color: var(--bg-color);
+            border-radius: 12px; flex-direction: column; gap: 15px;
+        }
+        .form-input {
+            width: 100%; padding: 12px; background-color: var(--card-bg-color);
+            border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-color);
+            font-size: 14px; box-sizing: border-box;
+        }
+        .form-actions { display: flex; gap: 10px; }
+        .form-button {
+            flex: 1; padding: 10px; border-radius: 8px; border: none;
+            font-weight: 600; cursor: pointer; transition: background-color 0.3s;
+        }
+        .save-btn { background-color: var(--button-green); color: white; }
+        .cancel-btn { background-color: var(--button-grey); color: white; }
+        .footer {
+            margin-top: 40px; display: flex; flex-direction: column;
+            align-items: center; gap: 15px;
+        }
+        .footer-text { font-size: 12px; color: var(--subtitle-color); }
+        .auth-switch-link {
+            background: none; border: none; color: var(--primary-accent); cursor: pointer;
+            text-decoration: underline; font-size: 14px; margin-top: 15px;
+        }
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); display: none; align-items: center;
+            justify-content: center; z-index: 2000; animation: fadeIn 0.3s;
+        }
+        .modal-content {
+            background: var(--card-bg-color); padding: 30px; border-radius: 12px;
+            width: 90%; max-width: 400px; text-align: left;
+        }
+        .modal-content h3 { margin-top: 0; color: var(--text-color); text-align: center; }
+        .admin-controls { display: none; }
+        #loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); display: flex; align-items: center;
+            justify-content: center; z-index: 3000; color: white; font-size: 24px;
+            display: none;
+        }
+        .settings-label { margin-top: 10px; margin-bottom: 5px; font-weight: 600; }
+        #accent-color-picker { width: 100%; height: 40px; border: none; padding: 0; background: none; }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Lobster&family=Montserrat:wght@600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="loading-overlay">Loading...</div>
+    <canvas id="background-canvas"></canvas>
+
+    <div class="container">
+        <!-- Authentication Container -->
+        <div id="auth-container" class="auth-container">
+            <div class="logo-container"><svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 15 L85 85 L15 85 Z" fill="#1c1c1e"/><path d="M30 75 C 40 50, 60 50, 70 25" stroke-width="12" stroke="#ffdd57" fill="none" stroke-linecap="round"/></svg></div>
+            <h1>MyHUB</h1>
+            <p class="subtitle">~ Ur Links in One Place ~</p>
+            <div id="login-form" class="auth-form" style="padding:0; background:none;">
+                <input type="email" id="login-email" class="form-input" placeholder="Email"><input type="password" id="login-password" class="form-input" placeholder="Password"><button id="login-btn" class="form-button save-btn">Sign In</button><button id="show-signup-btn" class="auth-switch-link">Don't have an account? Sign Up</button>
+            </div>
+            <div id="signup-form" class="auth-form" style="display:none; padding:0; background:none;">
+                <input type="email" id="signup-email" class="form-input" placeholder="Email"><input type="password" id="signup-password" class="form-input" placeholder="Password (min. 6 characters)"><button id="signup-btn" class="form-button save-btn">Sign Up</button><button id="show-login-btn" class="auth-switch-link">Already have an account? Sign In</button>
+            </div>
+            <footer class="footer" style="margin-top: 25px;"><p class="footer-text">A. Shamil ||©2025</p></footer>
+        </div>
+
+        <!-- Dashboard Container -->
+        <div id="dashboard-container" class="dashboard">
+            <div class="top-controls">
+                <button id="settings-btn" class="icon-button" title="Tetapan">⚙️</button>
+                <button id="signout-btn" class="icon-button" title="Sign Out">🚪</button>
+                <button id="admin-toggle-btn" class="icon-button" title="Mod Admin">🔑</button>
+                <button id="theme-toggle" class="icon-button" title="Tukar Tema">☀️</button>
+            </div>
+            <div class="logo-container"><svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 15 L85 85 L15 85 Z" fill="#1c1c1e"/><path d="M30 75 C 40 50, 60 50, 70 25" stroke-width="12" stroke="#ffdd57" fill="none" stroke-linecap="round"/></svg></div>
+            <h1>MyHUB</h1>
+            <p class="subtitle">~ Ur Links in One Place ~</p>
+            <input type="search" id="search-bar" placeholder="Cari pautan...">
+            <div class="tab-nav" id="tab-navigation"></div>
+            <div id="tab-content-container"></div>
+            <footer class="footer"><p class="footer-text" id="user-email-display"></p><p class="footer-text">Abd. Shamil Ahmad Sukri || &copy;2025</p></footer>
+        </div>
+    </div>
+    
+    <!-- Modals -->
+    <div id="message-box" class="modal-overlay"><div class="modal-content"><p id="message-box-text"></p><div id="message-box-actions" class="form-actions" style="margin-top: 15px;"></div></div></div>
+    <div id="edit-modal" class="modal-overlay"><div class="modal-content"><h3>Sunting Pautan</h3><div class="add-form" style="display: flex; padding: 0; margin-top: 15px; background: none;"><input type="hidden" id="edit-id-input"><input type="text" id="edit-icon-input" class="form-input" placeholder="Ikon (cth: ✨)"><input type="text" id="edit-name-input" class="form-input" placeholder="Nama Pautan"><input type="url" id="edit-url-input" class="form-input" placeholder="URL Pautan"><div class="form-actions" style="margin-top: 10px;"><button type="button" class="form-button cancel-btn" id="edit-cancel-btn">Batal</button><button type="button" class="form-button save-btn" id="edit-save-btn">Simpan</button></div></div></div></div>
+    <div id="settings-modal" class="modal-overlay"><div class="modal-content"><h3>Tetapan</h3><p class="settings-label">Warna Aksen</p><input type="color" id="accent-color-picker"><button type="button" class="form-button cancel-btn" id="settings-close-btn" style="margin-top: 20px;">Tutup</button></div></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, serverTimestamp, doc, deleteDoc, updateDoc, writeBatch, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyArk4ufQelk1dWqYK5FHi9_qSABHmeGe-E",
+            authDomain: "myhub-by-shamil.firebaseapp.com",
+            projectId: "myhub-by-shamil",
+            storageBucket: "myhub-by-shamil.appspot.com",
+            messagingSenderId: "524042894588",
+            appId: "1:524042894588:web:ff8c0e1d45491055c76b79",
+            measurementId: "G-L90LS8CXJX"
+        };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'myhub-by-shamil-app';
+        
+        const SAFE_KEY = '270603'; 
+        const CATEGORIES = ['PROJECT', 'DRIVE', 'DOC', 'DASH'];
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        let activeTab = CATEGORIES[0];
+        let isAdminMode = false;
+        let linkUnsubscribe = [];
+
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const authContainer = document.getElementById('auth-container');
+        const dashboardContainer = document.getElementById('dashboard-container');
+        const messageBox = document.getElementById('message-box');
+        const messageBoxText = document.getElementById('message-box-text');
+        const messageBoxActions = document.getElementById('message-box-actions');
+        const editModal = document.getElementById('edit-modal');
+        const settingsModal = document.getElementById('settings-modal');
+
+        function showLoading(show) { loadingOverlay.style.display = show ? 'flex' : 'none'; }
+
+        function showMessage(text, type = 'alert') {
+            return new Promise((resolve) => {
+                messageBoxText.textContent = text;
+                messageBoxActions.innerHTML = '';
+                if (type === 'confirm') {
+                    const confirmBtn = document.createElement('button'); confirmBtn.textContent = 'OK'; confirmBtn.className = 'form-button save-btn';
+                    confirmBtn.onclick = () => { messageBox.style.display = 'none'; resolve(true); };
+                    const cancelBtn = document.createElement('button'); cancelBtn.textContent = 'Batal'; cancelBtn.className = 'form-button cancel-btn';
+                    cancelBtn.onclick = () => { messageBox.style.display = 'none'; resolve(false); };
+                    messageBoxActions.appendChild(cancelBtn); messageBoxActions.appendChild(confirmBtn);
+                } else {
+                    const okBtn = document.createElement('button'); okBtn.textContent = 'OK'; okBtn.className = 'form-button save-btn';
+                    okBtn.onclick = () => { messageBox.style.display = 'none'; resolve(true); };
+                    messageBoxActions.appendChild(okBtn);
+                }
+                messageBox.style.display = 'flex';
+            });
+        }
+
+        function updateUIVisibility() {
+            document.querySelectorAll('.admin-controls').forEach(el => { el.style.display = isAdminMode ? 'block' : 'none'; });
+            document.querySelectorAll('.item-actions').forEach(el => { el.style.display = isAdminMode ? 'flex' : 'none'; });
+            const adminToggleButton = document.getElementById('admin-toggle-btn');
+            adminToggleButton.innerHTML = isAdminMode ? '🔒' : '🔑';
+            adminToggleButton.title = isAdminMode ? 'Kunci Mod Admin' : 'Buka Kunci Mod Admin';
+        }
+
+        function generateTabsAndContent() {
+            const tabNavContainer = document.getElementById('tab-navigation');
+            const tabContentContainer = document.getElementById('tab-content-container');
+            tabNavContainer.innerHTML = ''; tabContentContainer.innerHTML = '';
+            CATEGORIES.forEach(category => {
+                const tabButton = document.createElement('button');
+                tabButton.className = `tab-link ${category === activeTab ? 'active' : ''}`;
+                tabButton.textContent = category; tabButton.onclick = (e) => openTab(e, category);
+                tabNavContainer.appendChild(tabButton);
+                const contentDiv = document.createElement('div');
+                contentDiv.id = category; contentDiv.className = 'tab-content';
+                contentDiv.style.display = category === activeTab ? 'block' : 'none';
+                contentDiv.innerHTML = `<div id="button-container-${category}" class="button-container"></div>
+                    <div class="add-button-section admin-controls">
+                        <button class="add-button" id="add-btn-${category}">+ Tambah Pautan Baharu</button>
+                        <div class="add-form" id="add-form-${category}">
+                            <input type="text" id="name-input-${category}" class="form-input" placeholder="Nama Pautan">
+                            <input type="url" id="url-input-${category}" class="form-input" placeholder="URL Pautan">
+                            <input type="text" id="icon-input-${category}" class="form-input" placeholder="Ikon (cth: ✨)">
+                            <div class="form-actions">
+                                <button class="form-button cancel-btn" id="cancel-btn-${category}">Batal</button>
+                                <button class="form-button save-btn" id="save-btn-${category}">Simpan</button>
+                            </div></div></div>`;
+                tabContentContainer.appendChild(contentDiv);
+            });
+            updateUIVisibility();
+        }
+
+        function setupThemeSwitcher() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const currentTheme = localStorage.getItem('theme') || 'dark';
+            if (currentTheme === 'light') {
+                document.body.classList.add('light-theme');
+                themeToggle.textContent = '🌙';
+            }
+            themeToggle.onclick = () => {
+                document.body.classList.toggle('light-theme');
+                themeToggle.textContent = document.body.classList.contains('light-theme') ? '🌙' : '☀️';
+                localStorage.setItem('theme', document.body.classList.contains('light-theme') ? 'light' : 'dark');
+            };
+        }
+        
+        function setupCanvasAnimation() {
+            const canvas = document.getElementById('background-canvas'); if (!canvas) return;
+            const ctx = canvas.getContext('2d'); let particlesArray;
+            function setCanvasSize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+            class Particle { constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.size = Math.random() * 2 + 1; this.speedX = Math.random() * 1.5 - 0.75; this.speedY = Math.random() * 1.5 - 0.75; } update() { this.x += this.speedX; this.y += this.speedY; if (this.x > canvas.width || this.x < 0) this.speedX *= -1; if (this.y > canvas.height || this.y < 0) this.speedY *= -1; } draw() { const isLightTheme = document.body.classList.contains('light-theme'); ctx.fillStyle = isLightTheme ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)'; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); } }
+            function init() { setCanvasSize(); particlesArray = []; const numberOfParticles = (canvas.width * canvas.height) / 9000; for (let i = 0; i < numberOfParticles; i++) { particlesArray.push(new Particle()); } }
+            function animate() { if (!ctx) return; ctx.clearRect(0, 0, canvas.width, canvas.height); for (let i = 0; i < particlesArray.length; i++) { particlesArray[i].update(); particlesArray[i].draw(); } requestAnimationFrame(animate); }
+            init(); animate(); window.addEventListener('resize', init);
+        }
+
+        function detachLinkListeners() { linkUnsubscribe.forEach(unsub => unsub()); linkUnsubscribe = []; }
+
+        function setupLinkListeners(userId) {
+            detachLinkListeners();
+            CATEGORIES.forEach(category => {
+                const linksCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/links`);
+                const q = query(linksCollectionRef, where("category", "==", category));
+                const unsubscribe = onSnapshot(q, (querySnapshot) => {
+                    const container = document.getElementById(`button-container-${category}`);
+                    if (!container) return;
+                    container.innerHTML = '';
+                    const docs = querySnapshot.docs.sort((a, b) => (a.data().order || 0) - (b.data().order || 0));
+                    docs.forEach((docSnapshot) => {
+                        const linkData = docSnapshot.data();
+                        const linkItem = document.createElement('div');
+                        linkItem.className = 'link-item';
+                        linkItem.dataset.id = docSnapshot.id; // Store doc ID for drag-drop
+                        linkItem.innerHTML = `
+                            <div class="link-content">
+                                <a href="${linkData.url}" target="_blank" rel="noopener noreferrer">
+                                    <span class="link-icon">${linkData.icon || '🔗'}</span>
+                                    ${linkData.name}
+                                </a>
+                            </div>
+                            <div class="item-actions admin-controls">
+                                <button class="action-btn edit-link-btn" title="Sunting">✏️</button>
+                                <button class="action-btn delete-link-btn" title="Padam">🗑️</button>
+                            </div>`;
+                        linkItem.querySelector('.edit-link-btn').onclick = () => openEditModal(docSnapshot.id, linkData);
+                        linkItem.querySelector('.delete-link-btn').onclick = () => deleteLink(docSnapshot.id, linkData.name);
+                        container.appendChild(linkItem);
+                    });
+                    updateUIVisibility();
+                    new Sortable(container, {
+                        animation: 150,
+                        onEnd: async (evt) => {
+                            const items = Array.from(evt.target.children);
+                            const batch = writeBatch(db);
+                            items.forEach((item, index) => {
+                                const docId = item.dataset.id;
+                                const linkDocRef = doc(db, `artifacts/${appId}/users/${userId}/links`, docId);
+                                batch.update(linkDocRef, { order: index });
+                            });
+                            await batch.commit();
+                        }
+                    });
+                });
+                linkUnsubscribe.push(unsubscribe);
+                const addBtn = document.getElementById(`add-btn-${category}`);
+                if (!addBtn) return;
+                addBtn.onclick = () => { document.getElementById(`add-form-${category}`).style.display = 'flex'; addBtn.style.display = 'none'; };
+                document.getElementById(`cancel-btn-${category}`).onclick = () => { document.getElementById(`add-form-${category}`).style.display = 'none'; addBtn.style.display = 'block'; };
+                document.getElementById(`save-btn-${category}`).onclick = async () => {
+                    const name = document.getElementById(`name-input-${category}`).value.trim();
+                    const url = document.getElementById(`url-input-${category}`).value.trim();
+                    const icon = document.getElementById(`icon-input-${category}`).value.trim();
+                    if (name && url) {
+                        const currentItemCount = document.getElementById(`button-container-${category}`).children.length;
+                        await addDoc(linksCollectionRef, { name, url, category, icon: icon || '🔗', order: currentItemCount, createdAt: serverTimestamp() });
+                        document.getElementById(`name-input-${category}`).value = ''; document.getElementById(`url-input-${category}`).value = '';
+                        document.getElementById(`icon-input-${category}`).value = '';
+                        document.getElementById(`cancel-btn-${category}`).click();
+                    } else { showMessage("Sila isi nama dan URL."); }
+                };
+            });
+        }
+        
+        async function deleteLink(docId, linkName) {
+            const confirmed = await showMessage(`Anda pasti mahu padam pautan "${linkName}"?`, 'confirm');
+            if (confirmed) {
+                const userId = auth.currentUser.uid;
+                await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/links`, docId));
+            }
+        }
+
+        function openEditModal(docId, data) {
+            document.getElementById('edit-id-input').value = docId;
+            document.getElementById('edit-icon-input').value = data.icon || '';
+            document.getElementById('edit-name-input').value = data.name || '';
+            document.getElementById('edit-url-input').value = data.url || '';
+            editModal.style.display = 'flex';
+        }
+
+        window.openTab = function(evt, tabName) {
+            activeTab = tabName;
+            document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = 'none');
+            document.querySelectorAll('.tab-link').forEach(tl => tl.classList.remove('active'));
+            document.getElementById(tabName).style.display = 'block';
+            evt.currentTarget.classList.add('active');
+        }
+
+        async function applyUserSettings(userId) {
+            const settingsRef = doc(db, `artifacts/${appId}/users/${userId}/settings`, 'theme');
+            const docSnap = await getDoc(settingsRef);
+            if (docSnap.exists()) {
+                const settings = docSnap.data();
+                if(settings.accentColor) {
+                    document.documentElement.style.setProperty('--primary-accent', settings.accentColor);
+                    document.getElementById('accent-color-picker').value = settings.accentColor;
+                }
+            }
+        }
+
+        function main() {
+            setupThemeSwitcher();
+            setupCanvasAnimation();
+            generateTabsAndContent();
+
+            document.getElementById('show-signup-btn').onclick = () => { document.getElementById('login-form').style.display = 'none'; document.getElementById('signup-form').style.display = 'block'; };
+            document.getElementById('show-login-btn').onclick = () => { document.getElementById('signup-form').style.display = 'none'; document.getElementById('login-form').style.display = 'block'; };
+            
+            document.getElementById('signup-btn').onclick = async () => {
+                const email = document.getElementById('signup-email').value; const password = document.getElementById('signup-password').value;
+                if (!email || !password) { showMessage("Sila masukkan emel dan kata laluan."); return; }
+                showLoading(true); try { await createUserWithEmailAndPassword(auth, email, password); } catch (error) { showMessage("Ralat Pendaftaran: " + error.message); } finally { showLoading(false); }
+            };
+            
+            document.getElementById('login-btn').onclick = async () => {
+                const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value;
+                if (!email || !password) { showMessage("Sila masukkan emel dan kata laluan."); return; }
+                showLoading(true); try { await signInWithEmailAndPassword(auth, email, password); } catch (error) { showMessage("Ralat Log Masuk: " + error.message); } finally { showLoading(false); }
+            };
+
+            document.getElementById('signout-btn').onclick = async () => { await signOut(auth); };
+
+            document.getElementById('admin-toggle-btn').onclick = () => {
+                if (isAdminMode) { isAdminMode = false; } else {
+                    const key = prompt("PENTING DAN WAJIB !!!\n\nMasukkan Kod Akses. Sekiranya tiada, boleh cari Shamil©");
+                    if (key === SAFE_KEY) { isAdminMode = true; } else if (key) { showMessage("Kod Akses Salah!"); }
+                }
+                updateUIVisibility();
+            };
+
+            document.getElementById('edit-cancel-btn').onclick = () => { editModal.style.display = 'none'; };
+            document.getElementById('edit-save-btn').onclick = async () => {
+                const userId = auth.currentUser.uid;
+                const docId = document.getElementById('edit-id-input').value;
+                const newName = document.getElementById('edit-name-input').value.trim();
+                const newUrl = document.getElementById('edit-url-input').value.trim();
+                const newIcon = document.getElementById('edit-icon-input').value.trim();
+                if (docId && newName && newUrl) {
+                    await updateDoc(doc(db, `artifacts/${appId}/users/${userId}/links`, docId), { name: newName, url: newUrl, icon: newIcon });
+                    editModal.style.display = 'none';
+                }
+            };
+            
+            document.getElementById('search-bar').oninput = (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                document.querySelectorAll('.link-item').forEach(item => {
+                    const linkText = item.textContent.toLowerCase();
+                    if (linkText.includes(searchTerm)) {
+                        item.style.display = 'flex';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            };
+
+            document.getElementById('settings-btn').onclick = () => { settingsModal.style.display = 'flex'; };
+            document.getElementById('settings-close-btn').onclick = () => { settingsModal.style.display = 'none'; };
+            document.getElementById('accent-color-picker').oninput = async (e) => {
+                const newColor = e.target.value;
+                document.documentElement.style.setProperty('--primary-accent', newColor);
+                const userId = auth.currentUser.uid;
+                if(userId) {
+                    const settingsRef = doc(db, `artifacts/${appId}/users/${userId}/settings`, 'theme');
+                    await setDoc(settingsRef, { accentColor: newColor }, { merge: true });
+                }
+            };
+
+            onAuthStateChanged(auth, user => {
+                showLoading(false);
+                if (user) {
+                    authContainer.style.display = 'none'; dashboardContainer.style.display = 'block';
+                    document.getElementById('user-email-display').textContent = `Logged in as: ${user.email}`;
+                    setupLinkListeners(user.uid);
+                    applyUserSettings(user.uid);
+                } else {
+                    dashboardContainer.style.display = 'none'; authContainer.style.display = 'block';
+                    document.getElementById('user-email-display').textContent = '';
+                    detachLinkListeners(); isAdminMode = false; updateUIVisibility();
+                }
+            });
+        }
+        main();
+    </script>
+</body>
+</html>
