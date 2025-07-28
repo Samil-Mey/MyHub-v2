@@ -198,16 +198,16 @@
         import { getFirestore, collection, addDoc, query, where, onSnapshot, serverTimestamp, doc, deleteDoc, updateDoc, writeBatch, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "AIzaSyArk4ufQelk1dWqYK5FHi9_qSABHmeGe-E",
-            authDomain: "myhub-by-shamil.firebaseapp.com",
-            projectId: "myhub-by-shamil",
-            storageBucket: "myhub-by-shamil.appspot.com",
-            messagingSenderId: "524042894588",
-            appId: "1:524042894588:web:ff8c0e1d45491055c76b79",
-            measurementId: "G-L90LS8CXJX"
+        // --- CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCRXQIsRcsNj82FbkbEUPxRqlGJbgM4_Fs",
+            authDomain: "myhub-v2.firebaseapp.com",
+            projectId: "myhub-v2",
+            storageBucket: "myhub-v2.appspot.com",
+            messagingSenderId: "936441582005",
+            appId: "1:936441582005:web:c8d4042e12a55eecf7c9fc"
         };
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'myhub-by-shamil-app';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'myhub-v2-app';
         
         const SAFE_KEY = '270603'; 
         const CATEGORIES = ['PROJECT', 'DRIVE', 'DOC', 'DASH'];
