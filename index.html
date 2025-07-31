@@ -136,17 +136,13 @@
             width: 90%; max-width: 400px; text-align: left;
         }
         .modal-content h3 { margin-top: 0; color: var(--text-color); text-align: center; }
-        .admin-controls { display: none; }
+        .edit-controls { display: none; }
         #loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.7); display: flex; align-items: center;
             justify-content: center; z-index: 3000; color: white; font-size: 24px;
             display: none;
         }
-        .settings-label { margin-top: 10px; margin-bottom: 5px; font-weight: 600; }
-        #accent-color-picker { width: 100%; height: 40px; border: none; padding: 0; background: none; }
-        
-        /* CSS BAHARU UNTUK PEMILIH IKON */
         .icon-selector {
             display: flex; flex-wrap: wrap; gap: 10px;
             margin-bottom: 15px; justify-content: center;
@@ -191,9 +187,8 @@
 
         <div id="dashboard-container" class="dashboard">
             <div class="top-controls">
-                <button id="settings-btn" class="icon-button" title="Tetapan">⚙️</button>
+                <button id="edit-mode-btn" class="icon-button" title="Mod Sunting">✏️</button>
                 <button id="signout-btn" class="icon-button" title="Sign Out">🚪</button>
-                <button id="admin-toggle-btn" class="icon-button" title="Mod Admin">🔑</button>
                 <button id="theme-toggle" class="icon-button" title="Tukar Tema">☀️</button>
             </div>
             <div class="logo-container"><svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 15 L85 85 L15 85 Z" fill="#1c1c1e"/><path d="M30 75 C 40 50, 60 50, 70 25" stroke-width="12" stroke="#ffdd57" fill="none" stroke-linecap="round"/></svg></div>
@@ -223,11 +218,8 @@
             </div>
         </div>
     </div>
-    <div id="settings-modal" class="modal-overlay"><div class="modal-content"><h3>Tetapan</h3><p class="settings-label">Warna Aksen</p><input type="color" id="accent-color-picker"><button type="button" class="form-button cancel-btn" id="settings-close-btn" style="margin-top: 20px;">Tutup</button></div></div>
-
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script type="module">
-        // DIUBAH: Import Fungsi Baharu dari Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc, query, where, onSnapshot, serverTimestamp, doc, deleteDoc, updateDoc, writeBatch, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -243,8 +235,7 @@
         };
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'myhub-v2-app';
         
-        // DIUBAH: Gantikan SAFE_KEY dengan ADMIN_UID
-        const ADMIN_UID = "MASUKKAN_UID_ANDA_DI_SINI"; // <-- Gantikan dengan UID dari Bahagian 1
+        // KONSEP ADMIN DIBUANG
         const CATEGORIES = ['PROJECT', 'DRIVE', 'DOC', 'DASH'];
         const PREDEFINED_ICONS = ['✨', '🚀', '📁', '🔗', '📄', '💡', '🎯', '⭐', '🔧', '📈'];
 
@@ -253,7 +244,7 @@
         const auth = getAuth(app);
         
         let activeTab = CATEGORIES[0];
-        let isAdminMode = false;
+        let isEditMode = false; // Menggantikan isAdminMode
         let linkUnsubscribe = [];
 
         const loadingOverlay = document.getElementById('loading-overlay');
@@ -263,8 +254,7 @@
         const messageBoxText = document.getElementById('message-box-text');
         const messageBoxActions = document.getElementById('message-box-actions');
         const editModal = document.getElementById('edit-modal');
-        const settingsModal = document.getElementById('settings-modal');
-
+        
         function showLoading(show) { loadingOverlay.style.display = show ? 'flex' : 'none'; }
 
         function showMessage(text, type = 'alert') {
@@ -287,18 +277,27 @@
         }
 
         function updateUIVisibility() {
-            const adminToggleButton = document.getElementById('admin-toggle-btn');
-            // Hanya tunjuk butang admin jika pengguna adalah admin
-            adminToggleButton.style.display = (auth.currentUser && auth.currentUser.uid === ADMIN_UID) ? 'flex' : 'none';
+            const isUserLoggedIn = !!auth.currentUser;
+            const editModeBtn = document.getElementById('edit-mode-btn');
+
+            // Tunjuk butang edit hanya jika pengguna log masuk
+            editModeBtn.style.display = isUserLoggedIn ? 'flex' : 'none';
             
-            document.querySelectorAll('.admin-controls').forEach(el => { el.style.display = isAdminMode ? 'block' : 'none'; });
-            document.querySelectorAll('.item-actions').forEach(el => { el.style.display = isAdminMode ? 'flex' : 'none'; });
+            // Tukar ikon butang edit berdasarkan status mod sunting
+            if (isUserLoggedIn) {
+                editModeBtn.innerHTML = isEditMode ? '✅' : '✏️';
+                editModeBtn.title = isEditMode ? 'Selesai Sunting' : 'Mod Sunting';
+            }
             
-            adminToggleButton.innerHTML = isAdminMode ? '🔒' : '🔑';
-            adminToggleButton.title = isAdminMode ? 'Kunci Mod Admin' : 'Buka Kunci Mod Admin';
+            // Tunjuk kawalan suntingan (tambah, edit, padam) hanya jika mod sunting aktif
+            document.querySelectorAll('.edit-controls').forEach(el => {
+                el.style.display = isEditMode ? 'block' : 'none';
+            });
+            document.querySelectorAll('.item-actions').forEach(el => {
+                el.style.display = isEditMode ? 'flex' : 'none';
+            });
         }
 
-        // DIUBAH: Fungsi generateTabsAndContent dengan pemilih ikon
         function generateTabsAndContent() {
             const tabNavContainer = document.getElementById('tab-navigation');
             const tabContentContainer = document.getElementById('tab-content-container');
@@ -311,8 +310,9 @@
                 const contentDiv = document.createElement('div');
                 contentDiv.id = category; contentDiv.className = 'tab-content';
                 contentDiv.style.display = category === activeTab ? 'block' : 'none';
+                // KELAS 'admin-controls' DITUKAR KEPADA 'edit-controls'
                 contentDiv.innerHTML = `<div id="button-container-${category}" class="button-container"></div>
-                    <div class="add-button-section admin-controls">
+                    <div class="add-button-section edit-controls">
                         <button class="add-button" id="add-btn-${category}">+ Tambah Pautan Baharu</button>
                         <div class="add-form" id="add-form-${category}">
                             <div id="icon-selector-${category}" class="icon-selector"></div>
@@ -390,7 +390,7 @@
                                     ${linkData.name}
                                 </a>
                             </div>
-                            <div class="item-actions admin-controls">
+                            <div class="item-actions">
                                 <button class="action-btn edit-link-btn" title="Sunting">✏️</button>
                                 <button class="action-btn delete-link-btn" title="Padam">🗑️</button>
                             </div>`;
@@ -401,6 +401,8 @@
                     updateUIVisibility();
                     new Sortable(container, {
                         animation: 150,
+                        // Hanya boleh seret jika dalam mod sunting
+                        disabled: !isEditMode,
                         onEnd: async (evt) => {
                             const items = Array.from(evt.target.children);
                             const batch = writeBatch(db);
@@ -445,7 +447,6 @@
             }
         }
 
-        // DIUBAH: Fungsi openEditModal dengan pemilih ikon
         function openEditModal(docId, data) {
             document.getElementById('edit-id-input').value = docId;
             document.getElementById('edit-name-input').value = data.name || '';
@@ -480,18 +481,6 @@
             evt.currentTarget.classList.add('active');
         }
 
-        async function applyUserSettings(userId) {
-            const settingsRef = doc(db, `artifacts/${appId}/users/${userId}/settings`, 'theme');
-            const docSnap = await getDoc(settingsRef);
-            if (docSnap.exists()) {
-                const settings = docSnap.data();
-                if(settings.accentColor) {
-                    document.documentElement.style.setProperty('--primary-accent', settings.accentColor);
-                    document.getElementById('accent-color-picker').value = settings.accentColor;
-                }
-            }
-        }
-
         function main() {
             setupThemeSwitcher();
             setupCanvasAnimation();
@@ -512,7 +501,6 @@
                 showLoading(true); try { await signInWithEmailAndPassword(auth, email, password); } catch (error) { showMessage("Ralat Log Masuk: " + error.message); } finally { showLoading(false); }
             };
 
-            // DIUBAH: Logik Butang Lupa Kata Laluan
             document.getElementById('forgot-password-btn').onclick = () => {
                 const email = document.getElementById('login-email').value;
                 if (!email) {
@@ -530,9 +518,13 @@
 
             document.getElementById('signout-btn').onclick = async () => { await signOut(auth); };
 
-            // DIUBAH: Logik Mod Admin yang lebih selamat
-            document.getElementById('admin-toggle-btn').onclick = () => {
-                isAdminMode = !isAdminMode;
+            // LOGIK BAHARU UNTUK BUTANG MOD SUNTING
+            document.getElementById('edit-mode-btn').onclick = () => {
+                isEditMode = !isEditMode;
+                // Panggil semula setupLinkListeners untuk enable/disable fungsi seret
+                if (auth.currentUser) {
+                    setupLinkListeners(auth.currentUser.uid);
+                }
                 updateUIVisibility();
             };
 
@@ -560,31 +552,23 @@
                 });
             };
 
-            document.getElementById('settings-btn').onclick = () => { settingsModal.style.display = 'flex'; };
-            document.getElementById('settings-close-btn').onclick = () => { settingsModal.style.display = 'none'; };
-            document.getElementById('accent-color-picker').oninput = async (e) => {
-                const newColor = e.target.value;
-                document.documentElement.style.setProperty('--primary-accent', newColor);
-                const userId = auth.currentUser.uid;
-                if(userId) {
-                    const settingsRef = doc(db, `artifacts/${appId}/users/${userId}/settings`, 'theme');
-                    await setDoc(settingsRef, { accentColor: newColor }, { merge: true });
-                }
-            };
+            // LOGIK UNTUK TETAPAN DIBUANG
 
             onAuthStateChanged(auth, user => {
                 showLoading(false);
                 if (user) {
-                    authContainer.style.display = 'none'; dashboardContainer.style.display = 'block';
+                    authContainer.style.display = 'none';
+                    dashboardContainer.style.display = 'block';
                     document.getElementById('user-email-display').textContent = `Logged in as: ${user.email}`;
                     setupLinkListeners(user.uid);
-                    applyUserSettings(user.uid);
                 } else {
-                    dashboardContainer.style.display = 'none'; authContainer.style.display = 'block';
+                    dashboardContainer.style.display = 'none';
+                    authContainer.style.display = 'block';
                     document.getElementById('user-email-display').textContent = '';
-                    detachLinkListeners(); isAdminMode = false;
+                    detachLinkListeners();
                 }
-                // Sentiasa panggil updateUIVisibility untuk tunjuk/sorok butang admin
+                // Pastikan mod sunting sentiasa dimatikan semasa log masuk/log keluar
+                isEditMode = false;
                 updateUIVisibility();
             });
         }
