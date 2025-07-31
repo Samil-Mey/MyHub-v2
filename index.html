@@ -145,6 +145,32 @@
         }
         .settings-label { margin-top: 10px; margin-bottom: 5px; font-weight: 600; }
         #accent-color-picker { width: 100%; height: 40px; border: none; padding: 0; background: none; }
+        
+        /* CSS BAHARU UNTUK PEMILIH IKON */
+        .icon-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+        .icon-option {
+            cursor: pointer;
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 20px;
+            border: 2px solid var(--border-color);
+            transition: all 0.2s ease;
+            line-height: 1;
+        }
+        .icon-option:hover {
+            background-color: var(--border-color);
+        }
+        .icon-option.selected {
+            border-color: var(--primary-accent);
+            background-color: var(--primary-accent);
+            color: white;
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -155,7 +181,6 @@
     <canvas id="background-canvas"></canvas>
 
     <div class="container">
-        <!-- Authentication Container -->
         <div id="auth-container" class="auth-container">
             <div class="logo-container"><svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 15 L85 85 L15 85 Z" fill="#1c1c1e"/><path d="M30 75 C 40 50, 60 50, 70 25" stroke-width="12" stroke="#ffdd57" fill="none" stroke-linecap="round"/></svg></div>
             <h1>MyHUB</h1>
@@ -169,7 +194,6 @@
             <footer class="footer" style="margin-top: 25px;"><p class="footer-text">A. Shamil ||©2025</p></footer>
         </div>
 
-        <!-- Dashboard Container -->
         <div id="dashboard-container" class="dashboard">
             <div class="top-controls">
                 <button id="settings-btn" class="icon-button" title="Tetapan">⚙️</button>
@@ -187,9 +211,22 @@
         </div>
     </div>
     
-    <!-- Modals -->
     <div id="message-box" class="modal-overlay"><div class="modal-content"><p id="message-box-text"></p><div id="message-box-actions" class="form-actions" style="margin-top: 15px;"></div></div></div>
-    <div id="edit-modal" class="modal-overlay"><div class="modal-content"><h3>Sunting Pautan</h3><div class="add-form" style="display: flex; padding: 0; margin-top: 15px; background: none;"><input type="hidden" id="edit-id-input"><input type="text" id="edit-icon-input" class="form-input" placeholder="Ikon (cth: ✨)"><input type="text" id="edit-name-input" class="form-input" placeholder="Nama Pautan"><input type="url" id="edit-url-input" class="form-input" placeholder="URL Pautan"><div class="form-actions" style="margin-top: 10px;"><button type="button" class="form-button cancel-btn" id="edit-cancel-btn">Batal</button><button type="button" class="form-button save-btn" id="edit-save-btn">Simpan</button></div></div></div></div>
+    <div id="edit-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Sunting Pautan</h3>
+            <div class="add-form" style="display: flex; padding: 0; margin-top: 15px; background: none;">
+                <input type="hidden" id="edit-id-input">
+                <div id="edit-icon-selector" class="icon-selector"></div>
+                <input type="text" id="edit-name-input" class="form-input" placeholder="Nama Pautan">
+                <input type="url" id="edit-url-input" class="form-input" placeholder="URL Pautan">
+                <div class="form-actions" style="margin-top: 10px;">
+                    <button type="button" class="form-button cancel-btn" id="edit-cancel-btn">Batal</button>
+                    <button type="button" class="form-button save-btn" id="edit-save-btn">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="settings-modal" class="modal-overlay"><div class="modal-content"><h3>Tetapan</h3><p class="settings-label">Warna Aksen</p><input type="color" id="accent-color-picker"><button type="button" class="form-button cancel-btn" id="settings-close-btn" style="margin-top: 20px;">Tutup</button></div></div>
 
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
@@ -211,6 +248,8 @@
         
         const SAFE_KEY = '270603'; 
         const CATEGORIES = ['PROJECT', 'DRIVE', 'DOC', 'DASH'];
+        // SENARAI IKON BAHARU
+        const PREDEFINED_ICONS = ['✨', '🚀', '📁', '🔗', '📄', '💡', '🎯', '⭐', '🔧', '📈'];
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -258,6 +297,7 @@
             adminToggleButton.title = isAdminMode ? 'Kunci Mod Admin' : 'Buka Kunci Mod Admin';
         }
 
+        // FUNGSI generateTabsAndContent DIKEMAS KINI
         function generateTabsAndContent() {
             const tabNavContainer = document.getElementById('tab-navigation');
             const tabContentContainer = document.getElementById('tab-content-container');
@@ -274,14 +314,29 @@
                     <div class="add-button-section admin-controls">
                         <button class="add-button" id="add-btn-${category}">+ Tambah Pautan Baharu</button>
                         <div class="add-form" id="add-form-${category}">
+                            <div id="icon-selector-${category}" class="icon-selector"></div>
                             <input type="text" id="name-input-${category}" class="form-input" placeholder="Nama Pautan">
                             <input type="url" id="url-input-${category}" class="form-input" placeholder="URL Pautan">
-                            <input type="text" id="icon-input-${category}" class="form-input" placeholder="Ikon (cth: ✨)">
                             <div class="form-actions">
                                 <button class="form-button cancel-btn" id="cancel-btn-${category}">Batal</button>
                                 <button class="form-button save-btn" id="save-btn-${category}">Simpan</button>
-                            </div></div></div>`;
+                            </div>
+                        </div>
+                    </div>`;
                 tabContentContainer.appendChild(contentDiv);
+
+                const iconSelectorContainer = document.getElementById(`icon-selector-${category}`);
+                PREDEFINED_ICONS.forEach(icon => {
+                    const iconOpt = document.createElement('span');
+                    iconOpt.className = 'icon-option';
+                    iconOpt.textContent = icon;
+                    iconOpt.dataset.icon = icon;
+                    iconOpt.onclick = () => {
+                        iconSelectorContainer.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('selected'));
+                        iconOpt.classList.add('selected');
+                    };
+                    iconSelectorContainer.appendChild(iconOpt);
+                });
             });
             updateUIVisibility();
         }
@@ -312,6 +367,7 @@
 
         function detachLinkListeners() { linkUnsubscribe.forEach(unsub => unsub()); linkUnsubscribe = []; }
 
+        // FUNGSI setupLinkListeners DIKEMAS KINI (HANYA BAHAGIAN SAVE)
         function setupLinkListeners(userId) {
             detachLinkListeners();
             CATEGORIES.forEach(category => {
@@ -326,7 +382,7 @@
                         const linkData = docSnapshot.data();
                         const linkItem = document.createElement('div');
                         linkItem.className = 'link-item';
-                        linkItem.dataset.id = docSnapshot.id; // Store doc ID for drag-drop
+                        linkItem.dataset.id = docSnapshot.id;
                         linkItem.innerHTML = `
                             <div class="link-content">
                                 <a href="${linkData.url}" target="_blank" rel="noopener noreferrer">
@@ -362,15 +418,20 @@
                 if (!addBtn) return;
                 addBtn.onclick = () => { document.getElementById(`add-form-${category}`).style.display = 'flex'; addBtn.style.display = 'none'; };
                 document.getElementById(`cancel-btn-${category}`).onclick = () => { document.getElementById(`add-form-${category}`).style.display = 'none'; addBtn.style.display = 'block'; };
+                
+                // Logik Simpan yang telah dikemas kini
                 document.getElementById(`save-btn-${category}`).onclick = async () => {
                     const name = document.getElementById(`name-input-${category}`).value.trim();
                     const url = document.getElementById(`url-input-${category}`).value.trim();
-                    const icon = document.getElementById(`icon-input-${category}`).value.trim();
+                    const selectedIconEl = document.querySelector(`#icon-selector-${category} .icon-option.selected`);
+                    const icon = selectedIconEl ? selectedIconEl.dataset.icon : PREDEFINED_ICONS[0];
+                    
                     if (name && url) {
                         const currentItemCount = document.getElementById(`button-container-${category}`).children.length;
-                        await addDoc(linksCollectionRef, { name, url, category, icon: icon || '🔗', order: currentItemCount, createdAt: serverTimestamp() });
-                        document.getElementById(`name-input-${category}`).value = ''; document.getElementById(`url-input-${category}`).value = '';
-                        document.getElementById(`icon-input-${category}`).value = '';
+                        await addDoc(linksCollectionRef, { name, url, category, icon: icon, order: currentItemCount, createdAt: serverTimestamp() });
+                        document.getElementById(`name-input-${category}`).value = ''; 
+                        document.getElementById(`url-input-${category}`).value = '';
+                        if (selectedIconEl) selectedIconEl.classList.remove('selected');
                         document.getElementById(`cancel-btn-${category}`).click();
                     } else { showMessage("Sila isi nama dan URL."); }
                 };
@@ -385,11 +446,30 @@
             }
         }
 
+        // FUNGSI openEditModal DIKEMAS KINI
         function openEditModal(docId, data) {
             document.getElementById('edit-id-input').value = docId;
-            document.getElementById('edit-icon-input').value = data.icon || '';
             document.getElementById('edit-name-input').value = data.name || '';
             document.getElementById('edit-url-input').value = data.url || '';
+            
+            const editIconSelector = document.getElementById('edit-icon-selector');
+            editIconSelector.innerHTML = '';
+
+            PREDEFINED_ICONS.forEach(icon => {
+                const iconOpt = document.createElement('span');
+                iconOpt.className = 'icon-option';
+                iconOpt.textContent = icon;
+                iconOpt.dataset.icon = icon;
+                if (icon === data.icon) {
+                    iconOpt.classList.add('selected');
+                }
+                iconOpt.onclick = () => {
+                    editIconSelector.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('selected'));
+                    iconOpt.classList.add('selected');
+                };
+                editIconSelector.appendChild(iconOpt);
+            });
+
             editModal.style.display = 'flex';
         }
 
@@ -444,12 +524,16 @@
             };
 
             document.getElementById('edit-cancel-btn').onclick = () => { editModal.style.display = 'none'; };
+            
+            // Logik Simpan Suntingan yang telah dikemas kini
             document.getElementById('edit-save-btn').onclick = async () => {
                 const userId = auth.currentUser.uid;
                 const docId = document.getElementById('edit-id-input').value;
                 const newName = document.getElementById('edit-name-input').value.trim();
                 const newUrl = document.getElementById('edit-url-input').value.trim();
-                const newIcon = document.getElementById('edit-icon-input').value.trim();
+                const selectedIconEl = document.querySelector('#edit-icon-selector .icon-option.selected');
+                const newIcon = selectedIconEl ? selectedIconEl.dataset.icon : (PREDEFINED_ICONS[0] || '🔗');
+                
                 if (docId && newName && newUrl) {
                     await updateDoc(doc(db, `artifacts/${appId}/users/${userId}/links`, docId), { name: newName, url: newUrl, icon: newIcon });
                     editModal.style.display = 'none';
