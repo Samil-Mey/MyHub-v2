@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-<html lang="ms">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MyHUB - Ur Links In 1 Place</title>
     <style>
-        /* [CSS KEKAL SAMA SEPERTI SEBELUM INI] */
         :root {
             --bg-color: #1a202c; --card-bg-color: #2d3748; --text-color: #e2e8f0;
             --subtitle-color: #a0aec0; --border-color: #4a5568; --primary-accent: #4299e1;
@@ -13,8 +12,6 @@
             --link-text: #ffdd57; --link-hover-bg: #333333; --link-hover-text: #ffffff;
             --button-green: #38a169; --button-grey: #718096; --error-red: #e53e3e;
             --icon-color: #a0aec0; --icon-hover-color: #ffffff;
-            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            --font-title: 'Playfair Display', serif; --font-subtitle: 'Lobster', cursive; --font-tab: 'Montserrat', sans-serif;
         }
         body.light-theme {
             --bg-color: #f7fafc; --card-bg-color: #ffffff; --text-color: #2d3748;
@@ -24,207 +21,176 @@
             --icon-color: #718096; --icon-hover-color: #2d3748;
         }
         body {
-            font-family: var(--font-main); background-color: var(--bg-color); color: var(--text-color);
-            display: flex; justify-content: center; align-items: flex-start; min-height: 100vh;
-            margin: 0; padding: 40px 20px; box-sizing: border-box; transition: background-color 0.3s, color 0.3s;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color); color: var(--text-color); display: flex;
+            justify-content: center; align-items: center; min-height: 100vh;
+            margin: 0; padding: 40px 20px; box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
         }
         #background-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
         .container { width: 100%; max-width: 480px; }
-        .card {
-            text-align: center; background-color: var(--card-bg-color); padding: 40px; border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); position: relative; z-index: 1;
-            transition: background-color 0.3s;
+        .dashboard, .auth-container {
+            text-align: center; background-color: var(--card-bg-color); padding: 40px;
+            border-radius: 16px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            position: relative; z-index: 1;
         }
-        .hidden { display: none !important; }
-        .logo-container { margin-bottom: 20px; }
-        .logo-svg { width: 60px; height: 60px; }
-        h1 { font-family: var(--font-title); margin: 0; font-size: 42px; font-weight: 700; color: var(--text-color); }
-        .subtitle { font-family: var(--font-subtitle); font-size: 24px; color: var(--subtitle-color); margin: 5px 0 30px; letter-spacing: 1px; }
+        .auth-container { display: block; }
+        .dashboard { display: none; }
         .top-controls { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; }
         .icon-button {
-            background: none; border: 2px solid var(--border-color); color: var(--subtitle-color); width: 40px;
-            height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; align-items: center;
-            justify-content: center; transition: all 0.3s ease;
+            background: none; border: 2px solid var(--border-color); color: var(--subtitle-color);
+            width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px;
+            display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;
         }
-        .icon-button:hover, .icon-button:focus-visible { border-color: var(--primary-accent); color: var(--primary-accent); outline: none; }
-        .search-container { position: relative; margin-bottom: 20px; }
+        .icon-button:hover { border-color: var(--primary-accent); color: var(--primary-accent); }
+        .logo-container { margin-bottom: 20px; }
+        .logo-svg { width: 60px; height: 60px; }
+        h1 {
+            font-family: 'Playfair Display', serif; margin-top: 0; margin-bottom: 0;
+            font-size: 42px; font-weight: 700; color: var(--text-color);
+        }
+        .subtitle {
+            font-family: 'Lobster', cursive; font-size: 24px; font-weight: 400;
+            color: var(--subtitle-color); margin-top: 5px; margin-bottom: 30px; letter-spacing: 1px;
+        }
         #search-bar {
-            width: 100%; padding: 12px 40px 12px 15px; background-color: var(--bg-color);
-            border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-color); font-size: 14px; box-sizing: border-box;
+            width: 100%; padding: 12px; margin-bottom: 20px;
+            background-color: var(--bg-color); border: 1px solid var(--border-color);
+            border-radius: 8px; color: var(--text-color); font-size: 14px; box-sizing: border-box;
         }
-        #clear-search-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--icon-color); font-size: 20px; cursor: pointer; }
-        .tab-nav { display: flex; justify-content: center; background-color: var(--bg-color); border-radius: 12px; padding: 5px; margin-bottom: 25px; }
+        .tab-nav {
+            display: flex; justify-content: center; background-color: var(--bg-color);
+            border-radius: 12px; padding: 5px; margin-bottom: 25px;
+        }
         .tab-link {
-            font-family: var(--font-tab); font-weight: 600; font-size: 14px; color: var(--subtitle-color);
-            background: none; border: none; padding: 10px 15px; cursor: pointer; transition: all 0.3s ease; border-radius: 8px; flex: 1;
+            font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 14px;
+            color: var(--subtitle-color); background: none; border: none; padding: 10px 15px;
+            cursor: pointer; transition: all 0.3s ease; border-radius: 8px; flex: 1;
         }
         .tab-link:hover { background-color: var(--border-color); color: var(--text-color); }
-        .tab-link.active { background-color: var(--primary-accent); color: #ffffff; box-shadow: 0 4px 12px var(--primary-accent-shadow); }
-        .tab-content { display: block; animation: fadeIn 0.5s; }
+        .tab-link.active {
+            background-color: var(--primary-accent); color: #ffffff;
+            box-shadow: 0 4px 12px var(--primary-accent-shadow);
+        }
+        .tab-content { display: none; animation: fadeIn 0.5s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .button-container { display: flex; flex-direction: column; gap: 15px; }
         .link-item {
-            display: flex; align-items: center; background: var(--link-bg); border-radius: 12px;
-            transition: transform 0.2s ease, background-color 0.2s ease; word-wrap: break-word; cursor: grab;
+            display: flex; align-items: center; background: var(--link-bg);
+            border-radius: 12px; transition: transform 0.2s ease, background-color 0.2s ease;
+            word-wrap: break-word; cursor: grab;
         }
         .link-item:hover { transform: translateY(-2px); background-color: var(--link-hover-bg); }
         .link-content { flex-grow: 1; text-align: left; padding: 16px 0 16px 20px; }
         .link-icon { font-size: 20px; margin-right: 12px; }
-        .link-item a { color: var(--link-text); text-decoration: none; font-size: 16px; font-weight: 600; }
+        .link-item a {
+            color: var(--link-text); text-decoration: none; font-size: 16px; font-weight: 600;
+        }
         .link-item:hover a { color: var(--link-hover-text); }
         .item-actions { display: flex; padding-right: 10px; align-items: center; }
         .action-btn {
-            background: none; border: none; color: var(--icon-color); cursor: pointer; font-size: 20px; padding: 8px;
-            border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s, color 0.2s;
+            background: none; border: none; color: var(--icon-color); cursor: pointer;
+            font-size: 20px; padding: 8px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; transition: background-color 0.2s, color 0.2s;
         }
         .action-btn:hover { color: var(--icon-hover-color); background-color: rgba(144, 144, 144, 0.2); }
         .add-button-section { margin-top: 20px; }
         .add-button {
-            background: none; border: 2px dashed var(--border-color); color: var(--subtitle-color); padding: 12px;
-            width: 100%; border-radius: 12px; cursor: pointer; font-weight: 600; transition: all 0.3s ease;
+            background: none; border: 2px dashed var(--border-color); color: var(--subtitle-color);
+            padding: 12px; width: 100%; border-radius: 12px; cursor: pointer;
+            font-weight: 600; transition: all 0.3s ease;
         }
         .add-button:hover { background-color: var(--border-color); color: var(--text-color); border-style: solid; }
-        .form { display: flex; flex-direction: column; gap: 15px; background-color: var(--bg-color); border-radius: 12px; padding: 20px; margin-top: 20px; }
-        .auth-form-container { display: flex; flex-direction: column; gap: 15px; }
-        .form-input {
-            width: 100%; padding: 12px; background-color: var(--card-bg-color); border: 1px solid var(--border-color);
-            border-radius: 8px; color: var(--text-color); font-size: 14px; box-sizing: border-box;
+        .add-form, .auth-form {
+            display: flex; margin-top: 20px; padding: 20px; background-color: var(--bg-color);
+            border-radius: 12px; flex-direction: column; gap: 15px;
         }
-        .form-input:focus-visible { outline: 2px solid var(--primary-accent); border-color: var(--primary-accent); }
+        .form-input {
+            width: 100%; padding: 12px; background-color: var(--card-bg-color);
+            border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-color);
+            font-size: 14px; box-sizing: border-box;
+        }
         .form-actions { display: flex; gap: 10px; }
         .form-button {
-            flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;
-            transition: background-color 0.3s, opacity 0.3s;
+            flex: 1; padding: 10px; border-radius: 8px; border: none;
+            font-weight: 600; cursor: pointer; transition: background-color 0.3s;
         }
-        .form-button:hover { opacity: 0.9; }
         .save-btn { background-color: var(--button-green); color: white; }
         .cancel-btn { background-color: var(--button-grey); color: white; }
-        .auth-switch-link { background: none; border: none; color: var(--primary-accent); cursor: pointer; text-decoration: underline; font-size: 14px; margin-top: 15px; }
+        .footer {
+            margin-top: 40px; display: flex; flex-direction: column;
+            align-items: center; gap: 15px;
+        }
+        .footer-text { font-size: 12px; color: var(--subtitle-color); }
+        .auth-switch-link {
+            background: none; border: none; color: var(--primary-accent); cursor: pointer;
+            text-decoration: underline; font-size: 14px; margin-top: 15px;
+        }
         .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6);
-            display: flex; align-items: center; justify-content: center; z-index: 2000;
-            opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); display: none; align-items: center;
+            justify-content: center; z-index: 2000; animation: fadeIn 0.3s;
         }
-        .modal-overlay.visible { opacity: 1; visibility: visible; }
         .modal-content {
-            background: var(--card-bg-color); padding: 30px; border-radius: 12px; width: 90%;
-            max-width: 400px; text-align: left; transform: scale(0.95); transition: transform 0.3s;
+            background: var(--card-bg-color); padding: 30px; border-radius: 12px;
+            width: 90%; max-width: 400px; text-align: left;
         }
-        .modal-overlay.visible .modal-content { transform: scale(1); }
-        .modal-content h3 { margin: 0 0 20px 0; color: var(--text-color); text-align: center; }
-        .footer { margin-top: 40px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
-        .footer-text { font-size: 12px; color: var(--subtitle-color); text-align: center; }
-        .admin-controls, .item-actions { display: none; }
-        body.admin-mode .admin-controls, body.admin-mode .item-actions { display: flex; }
-        .sortable-ghost { opacity: 0.4; background: var(--primary-accent); }
+        .modal-content h3 { margin-top: 0; color: var(--text-color); text-align: center; }
+        .admin-controls { display: none; }
         #loading-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7);
-            display: flex; align-items: center; justify-content: center; z-index: 3000; color: white; font-size: 24px;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); display: flex; align-items: center;
+            justify-content: center; z-index: 3000; color: white; font-size: 24px;
+            display: none;
         }
-        /* --- NEW CSS FOR ICON SELECTOR --- */
-        .icon-selector { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 10px; }
-        .icon-choice {
-            font-size: 24px; cursor: pointer; padding: 5px; border-radius: 8px;
-            transition: transform 0.2s, background-color 0.2s; border: 2px solid transparent;
-        }
-        .icon-choice:hover { transform: scale(1.2); background-color: var(--border-color); }
-        .icon-choice.selected { border-color: var(--primary-accent); background-color: var(--border-color); }
-        .form-label { text-align: left; font-weight: 600; font-size: 14px; margin-bottom: -5px; color: var(--subtitle-color); }
+        .settings-label { margin-top: 10px; margin-bottom: 5px; font-weight: 600; }
+        #accent-color-picker { width: 100%; height: 40px; border: none; padding: 0; background: none; }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Lobster&family=Montserrat:wght@600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div id="loading-overlay">Memuatkan...</div>
+    <div id="loading-overlay">Loading...</div>
     <canvas id="background-canvas"></canvas>
 
     <div class="container">
-        <div id="auth-container" class="card">
-            <div class="logo-container"><svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 15 L85 85 L15 85 Z" fill="#1c1c1e"/><path d="M30 75 C 40 50, 60 50, 70 25" stroke-width="12" stroke="var(--link-text)" fill="none" stroke-linecap="round"/></svg></div>
+        <!-- Authentication Container -->
+        <div id="auth-container" class="auth-container">
+            <div class="logo-container"><svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 15 L85 85 L15 85 Z" fill="#1c1c1e"/><path d="M30 75 C 40 50, 60 50, 70 25" stroke-width="12" stroke="#ffdd57" fill="none" stroke-linecap="round"/></svg></div>
             <h1>MyHUB</h1>
             <p class="subtitle">~ Ur Links in One Place ~</p>
-            <div id="login-form" class="auth-form-container">
-                <input type="email" id="login-email" class="form-input" placeholder="Emel" autocomplete="email">
-                <input type="password" id="login-password" class="form-input" placeholder="Kata Laluan" autocomplete="current-password">
-                <button id="login-btn" class="form-button save-btn">Log Masuk</button>
-                <button id="show-signup-btn" class="auth-switch-link">Tiada akaun? Daftar</button>
+            <div id="login-form" class="auth-form" style="padding:0; background:none;">
+                <input type="email" id="login-email" class="form-input" placeholder="Email"><input type="password" id="login-password" class="form-input" placeholder="Password"><button id="login-btn" class="form-button save-btn">Sign In</button><button id="show-signup-btn" class="auth-switch-link">Don't have an account? Sign Up</button>
             </div>
-            <div id="signup-form" class="auth-form-container hidden">
-                <input type="email" id="signup-email" class="form-input" placeholder="Emel" autocomplete="email">
-                <input type="password" id="signup-password" class="form-input" placeholder="Kata Laluan (min. 6 aksara)" autocomplete="new-password">
-                <button id="signup-btn" class="form-button save-btn">Daftar</button>
-                <button id="show-login-btn" class="auth-switch-link">Sudah ada akaun? Log Masuk</button>
+            <div id="signup-form" class="auth-form" style="display:none; padding:0; background:none;">
+                <input type="email" id="signup-email" class="form-input" placeholder="Email"><input type="password" id="signup-password" class="form-input" placeholder="Password (min. 6 characters)"><button id="signup-btn" class="form-button save-btn">Sign Up</button><button id="show-login-btn" class="auth-switch-link">Already have an account? Sign In</button>
             </div>
-            <footer class="footer"><p class="footer-text">Abd. Shamil Ahmad Sukri || &copy;2025</p></footer>
+            <footer class="footer" style="margin-top: 25px;"><p class="footer-text">A. Shamil ||©2025</p></footer>
         </div>
 
-        <div id="dashboard-container" class="card hidden">
+        <!-- Dashboard Container -->
+        <div id="dashboard-container" class="dashboard">
             <div class="top-controls">
                 <button id="settings-btn" class="icon-button" title="Tetapan">⚙️</button>
-                <button id="signout-btn" class="icon-button" title="Log Keluar">🚪</button>
+                <button id="signout-btn" class="icon-button" title="Sign Out">🚪</button>
                 <button id="admin-toggle-btn" class="icon-button" title="Mod Admin">🔑</button>
                 <button id="theme-toggle" class="icon-button" title="Tukar Tema">☀️</button>
             </div>
-            <div class="logo-container"><svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 15 L85 85 L15 85 Z" fill="#1c1c1e"/><path d="M30 75 C 40 50, 60 50, 70 25" stroke-width="12" stroke="var(--link-text)" fill="none" stroke-linecap="round"/></svg></div>
+            <div class="logo-container"><svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 15 L85 85 L15 85 Z" fill="#1c1c1e"/><path d="M30 75 C 40 50, 60 50, 70 25" stroke-width="12" stroke="#ffdd57" fill="none" stroke-linecap="round"/></svg></div>
             <h1>MyHUB</h1>
             <p class="subtitle">~ Ur Links in One Place ~</p>
-            <div class="search-container">
-                <input type="search" id="search-bar" placeholder="Cari pautan...">
-                <button id="clear-search-btn" class="hidden" title="Padam Carian">&times;</button>
-            </div>
+            <input type="search" id="search-bar" placeholder="Cari pautan...">
             <div class="tab-nav" id="tab-navigation"></div>
             <div id="tab-content-container"></div>
-            <footer class="footer">
-                <p class="footer-text" id="user-email-display"></p>
-                <p class="footer-text">Abd. Shamil Ahmad Sukri || &copy;2025</p>
-            </footer>
+            <footer class="footer"><p class="footer-text" id="user-email-display"></p><p class="footer-text">Abd. Shamil Ahmad Sukri || &copy;2025</p></footer>
         </div>
     </div>
     
-    <div id="message-modal" class="modal-overlay"><div class="modal-content"><p id="message-text"></p><div id="message-actions" class="form-actions" style="margin-top: 15px;"></div></div></div>
-    
-    <div id="edit-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h3>Sunting Pautan</h3>
-            <div class="form">
-                <input type="hidden" id="edit-id-input">
-                <p class="form-label">Ikon</p>
-                <div id="edit-icon-selector" class="icon-selector" data-form="icon-selector"></div>
-                <p class="form-label">Nama</p>
-                <input type="text" id="edit-name-input" class="form-input" placeholder="Nama Pautan">
-                <p class="form-label">URL</p>
-                <input type="url" id="edit-url-input" class="form-input" placeholder="URL Pautan">
-                <div class="form-actions" style="margin-top: 10px;">
-                    <button type="button" class="form-button cancel-btn" id="edit-cancel-btn">Batal</button>
-                    <button type="button" class="form-button save-btn" id="edit-save-btn">Simpan</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div id="settings-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h3>Tetapan</h3>
-            <label for="accent-color-picker" class="settings-label">Warna Aksen</label>
-            <input type="color" id="accent-color-picker" style="width: 100%; height: 40px; border: none; padding: 0; background: none;">
-            <button type="button" class="form-button cancel-btn" id="settings-close-btn" style="margin-top: 20px;">Tutup</button>
-        </div>
-    </div>
-
-    <div id="admin-key-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h3>Kod Akses Admin</h3>
-            <p>Masukkan kod akses untuk mengaktifkan mod suntingan.</p>
-            <div class="form" style="padding:0; background:none; margin:0;">
-                <input type="password" id="admin-key-input" class="form-input" placeholder="Kod Akses">
-                <div class="form-actions" style="margin-top: 10px;">
-                    <button type="button" class="form-button cancel-btn" id="admin-key-cancel-btn">Batal</button>
-                    <button type="button" class="form-button save-btn" id="admin-key-submit-btn">Hantar</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Modals -->
+    <div id="message-box" class="modal-overlay"><div class="modal-content"><p id="message-box-text"></p><div id="message-box-actions" class="form-actions" style="margin-top: 15px;"></div></div></div>
+    <div id="edit-modal" class="modal-overlay"><div class="modal-content"><h3>Sunting Pautan</h3><div class="add-form" style="display: flex; padding: 0; margin-top: 15px; background: none;"><input type="hidden" id="edit-id-input"><input type="text" id="edit-icon-input" class="form-input" placeholder="Ikon (cth: ✨)"><input type="text" id="edit-name-input" class="form-input" placeholder="Nama Pautan"><input type="url" id="edit-url-input" class="form-input" placeholder="URL Pautan"><div class="form-actions" style="margin-top: 10px;"><button type="button" class="form-button cancel-btn" id="edit-cancel-btn">Batal</button><button type="button" class="form-button save-btn" id="edit-save-btn">Simpan</button></div></div></div></div>
+    <div id="settings-modal" class="modal-overlay"><div class="modal-content"><h3>Tetapan</h3><p class="settings-label">Warna Aksen</p><input type="color" id="accent-color-picker"><button type="button" class="form-button cancel-btn" id="settings-close-btn" style="margin-top: 20px;">Tutup</button></div></div>
 
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script type="module">
@@ -233,257 +199,302 @@
         import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // --- CONFIGURATION ---
-        const firebaseConfig = { /* Kunci API Firebase anda di sini */ };
+        const firebaseConfig = {
+            apiKey: "AIzaSyCRXQIsRcsNj82FbkbEUPxRqlGJbgM4_Fs",
+            authDomain: "myhub-v2.firebaseapp.com",
+            projectId: "myhub-v2",
+            storageBucket: "myhub-v2.appspot.com",
+            messagingSenderId: "936441582005",
+            appId: "1:936441582005:web:c8d4042e12a55eecf7c9fc"
+        };
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'myhub-v2-app';
+        
         const SAFE_KEY = '270603'; 
         const CATEGORIES = ['PROJECT', 'DRIVE', 'DOC', 'DASH'];
-        // --- NEW: Icon choices ---
-        const ICON_CHOICES = ['📁', '🔗', '📄', '📊', '💡', '🚀', '⭐', '🎯', '💻', '🌍'];
 
-        // --- INITIALIZE FIREBASE & STATE ---
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
         
         let activeTab = CATEGORIES[0];
+        let isAdminMode = false;
         let linkUnsubscribe = [];
-        let sortableInstances = [];
 
-        // --- DOM ELEMENT CACHING ---
-        const dom = {
-            loadingOverlay: document.getElementById('loading-overlay'),
-            authContainer: document.getElementById('auth-container'),
-            dashboardContainer: document.getElementById('dashboard-container'),
-            loginForm: document.getElementById('login-form'),
-            signupForm: document.getElementById('signup-form'),
-            tabNavContainer: document.getElementById('tab-navigation'),
-            tabContentContainer: document.getElementById('tab-content-container'),
-            userEmailDisplay: document.getElementById('user-email-display'),
-            searchBar: document.getElementById('search-bar'),
-            clearSearchBtn: document.getElementById('clear-search-btn'),
-            // Modals
-            messageModal: document.getElementById('message-modal'),
-            messageText: document.getElementById('message-text'),
-            messageActions: document.getElementById('message-actions'),
-            editModal: document.getElementById('edit-modal'),
-            settingsModal: document.getElementById('settings-modal'),
-            adminKeyModal: document.getElementById('admin-key-modal'),
-        };
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const authContainer = document.getElementById('auth-container');
+        const dashboardContainer = document.getElementById('dashboard-container');
+        const messageBox = document.getElementById('message-box');
+        const messageBoxText = document.getElementById('message-box-text');
+        const messageBoxActions = document.getElementById('message-box-actions');
+        const editModal = document.getElementById('edit-modal');
+        const settingsModal = document.getElementById('settings-modal');
 
-        // --- UI & MODAL FUNCTIONS ---
-        /* [Fungsi UI & Modal kekal sama seperti sebelum ini] */
-        const showLoading = (show) => { dom.loadingOverlay.style.display = show ? 'flex' : 'none'; };
-        const showModal = (modalElement) => modalElement.classList.add('visible');
-        const hideModal = (modalElement) => modalElement.classList.remove('visible');
+        function showLoading(show) { loadingOverlay.style.display = show ? 'flex' : 'none'; }
 
         function showMessage(text, type = 'alert') {
             return new Promise((resolve) => {
-                dom.messageText.textContent = text;
-                dom.messageActions.innerHTML = '';
+                messageBoxText.textContent = text;
+                messageBoxActions.innerHTML = '';
                 if (type === 'confirm') {
                     const confirmBtn = document.createElement('button'); confirmBtn.textContent = 'OK'; confirmBtn.className = 'form-button save-btn';
-                    confirmBtn.onclick = () => { hideModal(dom.messageModal); resolve(true); };
+                    confirmBtn.onclick = () => { messageBox.style.display = 'none'; resolve(true); };
                     const cancelBtn = document.createElement('button'); cancelBtn.textContent = 'Batal'; cancelBtn.className = 'form-button cancel-btn';
-                    cancelBtn.onclick = () => { hideModal(dom.messageModal); resolve(false); };
-                    dom.messageActions.append(cancelBtn, confirmBtn);
+                    cancelBtn.onclick = () => { messageBox.style.display = 'none'; resolve(false); };
+                    messageBoxActions.appendChild(cancelBtn); messageBoxActions.appendChild(confirmBtn);
                 } else {
                     const okBtn = document.createElement('button'); okBtn.textContent = 'OK'; okBtn.className = 'form-button save-btn';
-                    okBtn.onclick = () => { hideModal(dom.messageModal); resolve(true); };
-                    dom.messageActions.appendChild(okBtn);
+                    okBtn.onclick = () => { messageBox.style.display = 'none'; resolve(true); };
+                    messageBoxActions.appendChild(okBtn);
                 }
-                showModal(dom.messageModal);
+                messageBox.style.display = 'flex';
             });
         }
-        function promptAdminKey() {
-            return new Promise((resolve) => {
-                const input = document.getElementById('admin-key-input');
-                const submitBtn = document.getElementById('admin-key-submit-btn');
-                const cancelBtn = document.getElementById('admin-key-cancel-btn');
-                input.value = '';
-                const close = (value) => { hideModal(dom.adminKeyModal); resolve(value); };
-                submitBtn.onclick = () => close(input.value);
-                cancelBtn.onclick = () => close(null);
-                input.onkeydown = (e) => { if(e.key === 'Enter') close(input.value); };
-                showModal(dom.adminKeyModal);
-                input.focus();
-            });
+
+        function updateUIVisibility() {
+            document.querySelectorAll('.admin-controls').forEach(el => { el.style.display = isAdminMode ? 'block' : 'none'; });
+            document.querySelectorAll('.item-actions').forEach(el => { el.style.display = isAdminMode ? 'flex' : 'none'; });
+            const adminToggleButton = document.getElementById('admin-toggle-btn');
+            adminToggleButton.innerHTML = isAdminMode ? '🔒' : '🔑';
+            adminToggleButton.title = isAdminMode ? 'Kunci Mod Admin' : 'Buka Kunci Mod Admin';
         }
-        function updateAdminUI(isAdmin) { document.body.classList.toggle('admin-mode', isAdmin); const adminToggleButton = document.getElementById('admin-toggle-btn'); adminToggleButton.innerHTML = isAdmin ? '🔒' : '🔑'; adminToggleButton.title = isAdmin ? 'Kunci Mod Admin' : 'Buka Kunci Mod Admin'; }
 
-
-        // --- DYNAMIC CONTENT GENERATION ---
         function generateTabsAndContent() {
-            dom.tabNavContainer.innerHTML = ''; 
-            dom.tabContentContainer.innerHTML = '';
+            const tabNavContainer = document.getElementById('tab-navigation');
+            const tabContentContainer = document.getElementById('tab-content-container');
+            tabNavContainer.innerHTML = ''; tabContentContainer.innerHTML = '';
             CATEGORIES.forEach(category => {
                 const tabButton = document.createElement('button');
-                tabButton.className = 'tab-link';
-                tabButton.textContent = category;
-                tabButton.dataset.category = category;
-                dom.tabNavContainer.appendChild(tabButton);
-
+                tabButton.className = `tab-link ${category === activeTab ? 'active' : ''}`;
+                tabButton.textContent = category; tabButton.onclick = (e) => openTab(e, category);
+                tabNavContainer.appendChild(tabButton);
                 const contentDiv = document.createElement('div');
-                contentDiv.id = category;
-                contentDiv.className = 'tab-content';
-                contentDiv.classList.toggle('hidden', category !== activeTab);
-                
-                // Create icon selector HTML
-                const iconSelectorHtml = ICON_CHOICES.map(icon => `<span class="icon-choice" data-icon="${icon}">${icon}</span>`).join('');
-
-                contentDiv.innerHTML = `
-                    <div id="button-container-${category}" class="button-container"></div>
+                contentDiv.id = category; contentDiv.className = 'tab-content';
+                contentDiv.style.display = category === activeTab ? 'block' : 'none';
+                contentDiv.innerHTML = `<div id="button-container-${category}" class="button-container"></div>
                     <div class="add-button-section admin-controls">
-                        <button class="add-button" data-category="${category}">+ Tambah Pautan Baharu</button>
-                        <div class="form add-form hidden">
-                            <p class="form-label">Nama</p>
-                            <input type="text" class="form-input" data-form="name" placeholder="Nama Pautan">
-                            <p class="form-label">URL</p>
-                            <input type="url" class="form-input" data-form="url" placeholder="URL Pautan">
-                            <p class="form-label">Ikon</p>
-                            <div class="icon-selector" data-form="icon-selector">${iconSelectorHtml}</div>
+                        <button class="add-button" id="add-btn-${category}">+ Tambah Pautan Baharu</button>
+                        <div class="add-form" id="add-form-${category}">
+                            <input type="text" id="name-input-${category}" class="form-input" placeholder="Nama Pautan">
+                            <input type="url" id="url-input-${category}" class="form-input" placeholder="URL Pautan">
+                            <input type="text" id="icon-input-${category}" class="form-input" placeholder="Ikon (cth: ✨)">
                             <div class="form-actions">
-                                <button class="form-button cancel-btn" data-category="${category}">Batal</button>
-                                <button class="form-button save-btn" data-category="${category}">Simpan</button>
-                            </div>
-                        </div>
-                    </div>`;
-                dom.tabContentContainer.appendChild(contentDiv);
+                                <button class="form-button cancel-btn" id="cancel-btn-${category}">Batal</button>
+                                <button class="form-button save-btn" id="save-btn-${category}">Simpan</button>
+                            </div></div></div>`;
+                tabContentContainer.appendChild(contentDiv);
             });
-            document.querySelector(`.tab-link[data-category="${activeTab}"]`)?.classList.add('active');
+            updateUIVisibility();
         }
 
-        function populateIconSelector(selectorElement, selectedIcon) {
-            selectorElement.innerHTML = ICON_CHOICES.map(icon => 
-                `<span class="icon-choice ${icon === selectedIcon ? 'selected' : ''}" data-icon="${icon}">${icon}</span>`
-            ).join('');
-        }
-        
-        // --- THEME & ANIMATION ---
-        /* [Fungsi Tema & Animasi kekal sama seperti sebelum ini] */
-        function setupTheme() { const themeToggle = document.getElementById('theme-toggle'); const savedTheme = localStorage.getItem('theme') || 'dark'; document.body.classList.toggle('light-theme', savedTheme === 'light'); themeToggle.textContent = savedTheme === 'light' ? '🌙' : '☀️'; themeToggle.addEventListener('click', () => { const isLight = document.body.classList.toggle('light-theme'); themeToggle.textContent = isLight ? '🌙' : '☀️'; localStorage.setItem('theme', isLight ? 'light' : 'dark'); }); }
-        function setupCanvasAnimation() { /* Fungsi ini dikekalkan seperti asal */ }
-        
-        // --- FIREBASE & DATA HANDLING ---
-        function detachLinkListeners() { linkUnsubscribe.forEach(unsub => unsub()); linkUnsubscribe = []; sortableInstances.forEach(sortable => sortable.destroy()); sortableInstances = []; }
-        function setupLinkListeners(userId) { /* Fungsi kekal sama */ }
-
-        async function saveNewLink(category) {
-            const form = document.querySelector(`#${category} .add-form`);
-            const name = form.querySelector('[data-form="name"]').value.trim();
-            const url = form.querySelector('[data-form="url"]').value.trim();
-            // --- UPDATED: Get icon from selected choice ---
-            const selectedIconEl = form.querySelector('.icon-choice.selected');
-            const icon = selectedIconEl ? selectedIconEl.dataset.icon : ICON_CHOICES[0]; // Default to first icon if none selected
-
-            if (!name || !url) {
-                showMessage("Sila isi nama dan URL.");
-                return;
+        function setupThemeSwitcher() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const currentTheme = localStorage.getItem('theme') || 'dark';
+            if (currentTheme === 'light') {
+                document.body.classList.add('light-theme');
+                themeToggle.textContent = '🌙';
             }
+            themeToggle.onclick = () => {
+                document.body.classList.toggle('light-theme');
+                themeToggle.textContent = document.body.classList.contains('light-theme') ? '🌙' : '☀️';
+                localStorage.setItem('theme', document.body.classList.contains('light-theme') ? 'light' : 'dark');
+            };
+        }
+        
+        function setupCanvasAnimation() {
+            const canvas = document.getElementById('background-canvas'); if (!canvas) return;
+            const ctx = canvas.getContext('2d'); let particlesArray;
+            function setCanvasSize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+            class Particle { constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.size = Math.random() * 2 + 1; this.speedX = Math.random() * 1.5 - 0.75; this.speedY = Math.random() * 1.5 - 0.75; } update() { this.x += this.speedX; this.y += this.speedY; if (this.x > canvas.width || this.x < 0) this.speedX *= -1; if (this.y > canvas.height || this.y < 0) this.speedY *= -1; } draw() { const isLightTheme = document.body.classList.contains('light-theme'); ctx.fillStyle = isLightTheme ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)'; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); } }
+            function init() { setCanvasSize(); particlesArray = []; const numberOfParticles = (canvas.width * canvas.height) / 9000; for (let i = 0; i < numberOfParticles; i++) { particlesArray.push(new Particle()); } }
+            function animate() { if (!ctx) return; ctx.clearRect(0, 0, canvas.width, canvas.height); for (let i = 0; i < particlesArray.length; i++) { particlesArray[i].update(); particlesArray[i].draw(); } requestAnimationFrame(animate); }
+            init(); animate(); window.addEventListener('resize', init);
+        }
 
-            try {
-                const userId = auth.currentUser.uid;
+        function detachLinkListeners() { linkUnsubscribe.forEach(unsub => unsub()); linkUnsubscribe = []; }
+
+        function setupLinkListeners(userId) {
+            detachLinkListeners();
+            CATEGORIES.forEach(category => {
                 const linksCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/links`);
-                const container = document.getElementById(`button-container-${category}`);
-                const currentItemCount = container.children.length;
-                
-                await addDoc(linksCollectionRef, { name, url, category, icon, order: currentItemCount, createdAt: serverTimestamp() });
-
-                form.querySelectorAll('.form-input').forEach(input => input.value = '');
-                form.querySelector('.icon-choice.selected')?.classList.remove('selected');
-                form.classList.add('hidden');
-                document.querySelector(`.add-button[data-category="${category}"]`).classList.remove('hidden');
-
-            } catch (error) {
-                console.error("Error adding document: ", error);
-                showMessage("Gagal menambah pautan: " + error.message);
-            }
+                const q = query(linksCollectionRef, where("category", "==", category));
+                const unsubscribe = onSnapshot(q, (querySnapshot) => {
+                    const container = document.getElementById(`button-container-${category}`);
+                    if (!container) return;
+                    container.innerHTML = '';
+                    const docs = querySnapshot.docs.sort((a, b) => (a.data().order || 0) - (b.data().order || 0));
+                    docs.forEach((docSnapshot) => {
+                        const linkData = docSnapshot.data();
+                        const linkItem = document.createElement('div');
+                        linkItem.className = 'link-item';
+                        linkItem.dataset.id = docSnapshot.id; // Store doc ID for drag-drop
+                        linkItem.innerHTML = `
+                            <div class="link-content">
+                                <a href="${linkData.url}" target="_blank" rel="noopener noreferrer">
+                                    <span class="link-icon">${linkData.icon || '🔗'}</span>
+                                    ${linkData.name}
+                                </a>
+                            </div>
+                            <div class="item-actions admin-controls">
+                                <button class="action-btn edit-link-btn" title="Sunting">✏️</button>
+                                <button class="action-btn delete-link-btn" title="Padam">🗑️</button>
+                            </div>`;
+                        linkItem.querySelector('.edit-link-btn').onclick = () => openEditModal(docSnapshot.id, linkData);
+                        linkItem.querySelector('.delete-link-btn').onclick = () => deleteLink(docSnapshot.id, linkData.name);
+                        container.appendChild(linkItem);
+                    });
+                    updateUIVisibility();
+                    new Sortable(container, {
+                        animation: 150,
+                        onEnd: async (evt) => {
+                            const items = Array.from(evt.target.children);
+                            const batch = writeBatch(db);
+                            items.forEach((item, index) => {
+                                const docId = item.dataset.id;
+                                const linkDocRef = doc(db, `artifacts/${appId}/users/${userId}/links`, docId);
+                                batch.update(linkDocRef, { order: index });
+                            });
+                            await batch.commit();
+                        }
+                    });
+                });
+                linkUnsubscribe.push(unsubscribe);
+                const addBtn = document.getElementById(`add-btn-${category}`);
+                if (!addBtn) return;
+                addBtn.onclick = () => { document.getElementById(`add-form-${category}`).style.display = 'flex'; addBtn.style.display = 'none'; };
+                document.getElementById(`cancel-btn-${category}`).onclick = () => { document.getElementById(`add-form-${category}`).style.display = 'none'; addBtn.style.display = 'block'; };
+                document.getElementById(`save-btn-${category}`).onclick = async () => {
+                    const name = document.getElementById(`name-input-${category}`).value.trim();
+                    const url = document.getElementById(`url-input-${category}`).value.trim();
+                    const icon = document.getElementById(`icon-input-${category}`).value.trim();
+                    if (name && url) {
+                        const currentItemCount = document.getElementById(`button-container-${category}`).children.length;
+                        await addDoc(linksCollectionRef, { name, url, category, icon: icon || '🔗', order: currentItemCount, createdAt: serverTimestamp() });
+                        document.getElementById(`name-input-${category}`).value = ''; document.getElementById(`url-input-${category}`).value = '';
+                        document.getElementById(`icon-input-${category}`).value = '';
+                        document.getElementById(`cancel-btn-${category}`).click();
+                    } else { showMessage("Sila isi nama dan URL."); }
+                };
+            });
         }
         
-        async function deleteLink(docId, linkName) { /* Fungsi kekal sama */ }
+        async function deleteLink(docId, linkName) {
+            const confirmed = await showMessage(`Anda pasti mahu padam pautan "${linkName}"?`, 'confirm');
+            if (confirmed) {
+                const userId = auth.currentUser.uid;
+                await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/links`, docId));
+            }
+        }
 
         function openEditModal(docId, data) {
             document.getElementById('edit-id-input').value = docId;
+            document.getElementById('edit-icon-input').value = data.icon || '';
             document.getElementById('edit-name-input').value = data.name || '';
             document.getElementById('edit-url-input').value = data.url || '';
-            
-            // --- UPDATED: Populate and set the selected icon ---
-            const iconSelector = document.getElementById('edit-icon-selector');
-            populateIconSelector(iconSelector, data.icon);
-
-            showModal(dom.editModal);
+            editModal.style.display = 'flex';
         }
-        
-        async function applyUserSettings(userId) { /* Fungsi kekal sama */ }
-        
-        // --- EVENT LISTENERS SETUP ---
-        function setupEventListeners() {
-            /* [Listener Asas kekal sama] */
-            document.getElementById('show-signup-btn').addEventListener('click', () => { dom.loginForm.classList.add('hidden'); dom.signupForm.classList.remove('hidden'); });
-            document.getElementById('show-login-btn').addEventListener('click', () => { dom.signupForm.classList.add('hidden'); dom.loginForm.classList.remove('hidden'); });
-            const handleAuthError = (error) => { let message = "Berlaku ralat. Sila cuba lagi."; if (error.code === 'auth/invalid-credential') message = "Emel atau kata laluan tidak sah."; if (error.code === 'auth/email-already-in-use') message = "Emel ini telah didaftarkan."; if (error.code === 'auth/weak-password') message = "Kata laluan terlalu lemah. Guna sekurang-kurangnya 6 aksara."; showMessage(message); };
-            document.getElementById('signup-btn').addEventListener('click', async () => { const email = document.getElementById('signup-email').value; const password = document.getElementById('signup-password').value; if (!email || !password) { showMessage("Sila masukkan emel dan kata laluan."); return; } showLoading(true); try { await createUserWithEmailAndPassword(auth, email, password); } catch (error) { handleAuthError(error); } finally { showLoading(false); } });
-            document.getElementById('login-btn').addEventListener('click', async () => { const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value; if (!email || !password) { showMessage("Sila masukkan emel dan kata laluan."); return; } showLoading(true); try { await signInWithEmailAndPassword(auth, email, password); } catch (error) { handleAuthError(error); } finally { showLoading(false); } });
-            document.getElementById('signout-btn').addEventListener('click', () => signOut(auth));
-            document.getElementById('admin-toggle-btn').addEventListener('click', async () => { const isAdmin = document.body.classList.contains('admin-mode'); if (isAdmin) { updateAdminUI(false); } else { const key = await promptAdminKey(); if (key === SAFE_KEY) { updateAdminUI(true); } else if (key !== null) { showMessage("Kod Akses Salah!"); } } });
-            dom.tabNavContainer.addEventListener('click', (e) => { if (e.target.matches('.tab-link')) { activeTab = e.target.dataset.category; document.querySelectorAll('.tab-content').forEach(tc => tc.classList.add('hidden')); document.getElementById(activeTab).classList.remove('hidden'); document.querySelectorAll('.tab-link').forEach(tl => tl.classList.remove('active')); e.target.classList.add('active'); } });
-            dom.searchBar.addEventListener('input', (e) => { const searchTerm = e.target.value.toLowerCase(); document.querySelectorAll('.link-item').forEach(item => { const linkText = item.textContent.toLowerCase(); item.style.display = linkText.includes(searchTerm) ? 'flex' : 'none'; }); dom.clearSearchBtn.classList.toggle('hidden', !searchTerm); });
-            dom.clearSearchBtn.addEventListener('click', () => { dom.searchBar.value = ''; dom.searchBar.dispatchEvent(new Event('input')); dom.searchBar.focus(); });
-            document.getElementById('settings-btn').addEventListener('click', () => showModal(dom.settingsModal));
-            document.getElementById('settings-close-btn').addEventListener('click', () => hideModal(dom.settingsModal));
-            document.getElementById('accent-color-picker').addEventListener('input', async (e) => { const newColor = e.target.value; document.documentElement.style.setProperty('--primary-accent', newColor); const userId = auth.currentUser.uid; if(userId) { const settingsRef = doc(db, `artifacts/${appId}/users/${userId}/settings`, 'theme'); await setDoc(settingsRef, { accentColor: newColor }, { merge: true }); } });
 
+        window.openTab = function(evt, tabName) {
+            activeTab = tabName;
+            document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = 'none');
+            document.querySelectorAll('.tab-link').forEach(tl => tl.classList.remove('active'));
+            document.getElementById(tabName).style.display = 'block';
+            evt.currentTarget.classList.add('active');
+        }
 
-            // --- UPDATED: Event delegation for icon selectors ---
-            dom.tabContentContainer.addEventListener('click', (e) => {
-                const category = e.target.closest('.tab-content')?.id;
-                // Icon choice
-                if (e.target.matches('.icon-choice')) {
-                    const selector = e.target.closest('.icon-selector');
-                    selector.querySelector('.selected')?.classList.remove('selected');
-                    e.target.classList.add('selected');
+        async function applyUserSettings(userId) {
+            const settingsRef = doc(db, `artifacts/${appId}/users/${userId}/settings`, 'theme');
+            const docSnap = await getDoc(settingsRef);
+            if (docSnap.exists()) {
+                const settings = docSnap.data();
+                if(settings.accentColor) {
+                    document.documentElement.style.setProperty('--primary-accent', settings.accentColor);
+                    document.getElementById('accent-color-picker').value = settings.accentColor;
                 }
-                // Form buttons
-                else if (e.target.matches('.add-button')) {
-                    e.target.classList.add('hidden');
-                    document.querySelector(`#${category} .add-form`).classList.remove('hidden');
-                } else if (e.target.matches('.cancel-btn')) {
-                    document.querySelector(`#${category} .add-form`).classList.add('hidden');
-                    document.querySelector(`.add-button[data-category="${category}"]`).classList.remove('hidden');
-                } else if (e.target.matches('.save-btn')) {
-                    saveNewLink(category);
-                }
-            });
+            }
+        }
 
-            // Edit Modal
-            document.getElementById('edit-cancel-btn').addEventListener('click', () => hideModal(dom.editModal));
-            // --- UPDATED: Event delegation for edit modal icon selector ---
-            dom.editModal.addEventListener('click', (e) => {
-                if (e.target.matches('.icon-choice')) {
-                    const selector = e.target.closest('.icon-selector');
-                    selector.querySelector('.selected')?.classList.remove('selected');
-                    e.target.classList.add('selected');
-                }
-            });
+        function main() {
+            setupThemeSwitcher();
+            setupCanvasAnimation();
+            generateTabsAndContent();
 
-            document.getElementById('edit-save-btn').addEventListener('click', async () => {
+            document.getElementById('show-signup-btn').onclick = () => { document.getElementById('login-form').style.display = 'none'; document.getElementById('signup-form').style.display = 'block'; };
+            document.getElementById('show-login-btn').onclick = () => { document.getElementById('signup-form').style.display = 'none'; document.getElementById('login-form').style.display = 'block'; };
+            
+            document.getElementById('signup-btn').onclick = async () => {
+                const email = document.getElementById('signup-email').value; const password = document.getElementById('signup-password').value;
+                if (!email || !password) { showMessage("Sila masukkan emel dan kata laluan."); return; }
+                showLoading(true); try { await createUserWithEmailAndPassword(auth, email, password); } catch (error) { showMessage("Ralat Pendaftaran: " + error.message); } finally { showLoading(false); }
+            };
+            
+            document.getElementById('login-btn').onclick = async () => {
+                const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value;
+                if (!email || !password) { showMessage("Sila masukkan emel dan kata laluan."); return; }
+                showLoading(true); try { await signInWithEmailAndPassword(auth, email, password); } catch (error) { showMessage("Ralat Log Masuk: " + error.message); } finally { showLoading(false); }
+            };
+
+            document.getElementById('signout-btn').onclick = async () => { await signOut(auth); };
+
+            document.getElementById('admin-toggle-btn').onclick = () => {
+                if (isAdminMode) { isAdminMode = false; } else {
+                    const key = prompt("PENTING DAN WAJIB !!!\n\nMasukkan Kod Akses. Sekiranya tiada, boleh cari Shamil©");
+                    if (key === SAFE_KEY) { isAdminMode = true; } else if (key) { showMessage("Kod Akses Salah!"); }
+                }
+                updateUIVisibility();
+            };
+
+            document.getElementById('edit-cancel-btn').onclick = () => { editModal.style.display = 'none'; };
+            document.getElementById('edit-save-btn').onclick = async () => {
                 const userId = auth.currentUser.uid;
                 const docId = document.getElementById('edit-id-input').value;
-                const name = document.getElementById('edit-name-input').value.trim();
-                const url = document.getElementById('edit-url-input').value.trim();
-                // --- UPDATED: Get icon from selected choice in edit modal ---
-                const selectedIconEl = dom.editModal.querySelector('.icon-choice.selected');
-                const icon = selectedIconEl ? selectedIconEl.dataset.icon : ICON_CHOICES[0];
+                const newName = document.getElementById('edit-name-input').value.trim();
+                const newUrl = document.getElementById('edit-url-input').value.trim();
+                const newIcon = document.getElementById('edit-icon-input').value.trim();
+                if (docId && newName && newUrl) {
+                    await updateDoc(doc(db, `artifacts/${appId}/users/${userId}/links`, docId), { name: newName, url: newUrl, icon: newIcon });
+                    editModal.style.display = 'none';
+                }
+            };
+            
+            document.getElementById('search-bar').oninput = (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                document.querySelectorAll('.link-item').forEach(item => {
+                    const linkText = item.textContent.toLowerCase();
+                    if (linkText.includes(searchTerm)) {
+                        item.style.display = 'flex';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            };
 
-                if (docId && name && url) {
-                    await updateDoc(doc(db, `artifacts/${appId}/users/${userId}/links`, docId), { name, url, icon });
-                    hideModal(dom.editModal);
+            document.getElementById('settings-btn').onclick = () => { settingsModal.style.display = 'flex'; };
+            document.getElementById('settings-close-btn').onclick = () => { settingsModal.style.display = 'none'; };
+            document.getElementById('accent-color-picker').oninput = async (e) => {
+                const newColor = e.target.value;
+                document.documentElement.style.setProperty('--primary-accent', newColor);
+                const userId = auth.currentUser.uid;
+                if(userId) {
+                    const settingsRef = doc(db, `artifacts/${appId}/users/${userId}/settings`, 'theme');
+                    await setDoc(settingsRef, { accentColor: newColor }, { merge: true });
+                }
+            };
+
+            onAuthStateChanged(auth, user => {
+                showLoading(false);
+                if (user) {
+                    authContainer.style.display = 'none'; dashboardContainer.style.display = 'block';
+                    document.getElementById('user-email-display').textContent = `Logged in as: ${user.email}`;
+                    setupLinkListeners(user.uid);
+                    applyUserSettings(user.uid);
+                } else {
+                    dashboardContainer.style.display = 'none'; authContainer.style.display = 'block';
+                    document.getElementById('user-email-display').textContent = '';
+                    detachLinkListeners(); isAdminMode = false; updateUIVisibility();
                 }
             });
         }
-
-        // --- MAIN APPLICATION LOGIC ---
-        function main() { /* Fungsi kekal sama */ }
-        document.addEventListener('DOMContentLoaded', main);
+        main();
     </script>
 </body>
 </html>
