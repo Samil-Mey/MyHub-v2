@@ -148,28 +148,17 @@
         
         /* CSS BAHARU UNTUK PEMILIH IKON */
         .icon-selector {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 15px;
-            justify-content: center;
+            display: flex; flex-wrap: wrap; gap: 10px;
+            margin-bottom: 15px; justify-content: center;
         }
         .icon-option {
-            cursor: pointer;
-            padding: 8px 10px;
-            border-radius: 8px;
-            font-size: 20px;
-            border: 2px solid var(--border-color);
-            transition: all 0.2s ease;
-            line-height: 1;
+            cursor: pointer; padding: 8px 10px; border-radius: 8px;
+            font-size: 20px; border: 2px solid var(--border-color);
+            transition: all 0.2s ease; line-height: 1;
         }
-        .icon-option:hover {
-            background-color: var(--border-color);
-        }
+        .icon-option:hover { background-color: var(--border-color); }
         .icon-option.selected {
-            border-color: var(--primary-accent);
-            background-color: var(--primary-accent);
-            color: white;
+            border-color: var(--primary-accent); background-color: var(--primary-accent); color: white;
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -185,9 +174,15 @@
             <div class="logo-container"><svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 15 L85 85 L15 85 Z" fill="#1c1c1e"/><path d="M30 75 C 40 50, 60 50, 70 25" stroke-width="12" stroke="#ffdd57" fill="none" stroke-linecap="round"/></svg></div>
             <h1>MyHUB</h1>
             <p class="subtitle">~ Ur Links in One Place ~</p>
+            
             <div id="login-form" class="auth-form" style="padding:0; background:none;">
-                <input type="email" id="login-email" class="form-input" placeholder="Email"><input type="password" id="login-password" class="form-input" placeholder="Password"><button id="login-btn" class="form-button save-btn">Sign In</button><button id="show-signup-btn" class="auth-switch-link">Don't have an account? Sign Up</button>
+                <input type="email" id="login-email" class="form-input" placeholder="Email">
+                <input type="password" id="login-password" class="form-input" placeholder="Password">
+                <button id="forgot-password-btn" class="auth-switch-link" style="margin-top:0; margin-bottom: 15px;">Lupa Kata Laluan?</button>
+                <button id="login-btn" class="form-button save-btn">Sign In</button>
+                <button id="show-signup-btn" class="auth-switch-link">Don't have an account? Sign Up</button>
             </div>
+
             <div id="signup-form" class="auth-form" style="display:none; padding:0; background:none;">
                 <input type="email" id="signup-email" class="form-input" placeholder="Email"><input type="password" id="signup-password" class="form-input" placeholder="Password (min. 6 characters)"><button id="signup-btn" class="form-button save-btn">Sign Up</button><button id="show-login-btn" class="auth-switch-link">Already have an account? Sign In</button>
             </div>
@@ -212,6 +207,7 @@
     </div>
     
     <div id="message-box" class="modal-overlay"><div class="modal-content"><p id="message-box-text"></p><div id="message-box-actions" class="form-actions" style="margin-top: 15px;"></div></div></div>
+    
     <div id="edit-modal" class="modal-overlay">
         <div class="modal-content">
             <h3>Sunting Pautan</h3>
@@ -231,9 +227,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script type="module">
+        // DIUBAH: Import Fungsi Baharu dari Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc, query, where, onSnapshot, serverTimestamp, doc, deleteDoc, updateDoc, writeBatch, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // --- CONFIGURATION ---
         const firebaseConfig = {
@@ -246,9 +243,9 @@
         };
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'myhub-v2-app';
         
-        const SAFE_KEY = '270603'; 
+        // DIUBAH: Gantikan SAFE_KEY dengan ADMIN_UID
+        const ADMIN_UID = "MASUKKAN_UID_ANDA_DI_SINI"; // <-- Gantikan dengan UID dari Bahagian 1
         const CATEGORIES = ['PROJECT', 'DRIVE', 'DOC', 'DASH'];
-        // SENARAI IKON BAHARU
         const PREDEFINED_ICONS = ['✨', '🚀', '📁', '🔗', '📄', '💡', '🎯', '⭐', '🔧', '📈'];
 
         const app = initializeApp(firebaseConfig);
@@ -290,14 +287,18 @@
         }
 
         function updateUIVisibility() {
+            const adminToggleButton = document.getElementById('admin-toggle-btn');
+            // Hanya tunjuk butang admin jika pengguna adalah admin
+            adminToggleButton.style.display = (auth.currentUser && auth.currentUser.uid === ADMIN_UID) ? 'flex' : 'none';
+            
             document.querySelectorAll('.admin-controls').forEach(el => { el.style.display = isAdminMode ? 'block' : 'none'; });
             document.querySelectorAll('.item-actions').forEach(el => { el.style.display = isAdminMode ? 'flex' : 'none'; });
-            const adminToggleButton = document.getElementById('admin-toggle-btn');
+            
             adminToggleButton.innerHTML = isAdminMode ? '🔒' : '🔑';
             adminToggleButton.title = isAdminMode ? 'Kunci Mod Admin' : 'Buka Kunci Mod Admin';
         }
 
-        // FUNGSI generateTabsAndContent DIKEMAS KINI
+        // DIUBAH: Fungsi generateTabsAndContent dengan pemilih ikon
         function generateTabsAndContent() {
             const tabNavContainer = document.getElementById('tab-navigation');
             const tabContentContainer = document.getElementById('tab-content-container');
@@ -367,7 +368,6 @@
 
         function detachLinkListeners() { linkUnsubscribe.forEach(unsub => unsub()); linkUnsubscribe = []; }
 
-        // FUNGSI setupLinkListeners DIKEMAS KINI (HANYA BAHAGIAN SAVE)
         function setupLinkListeners(userId) {
             detachLinkListeners();
             CATEGORIES.forEach(category => {
@@ -419,7 +419,6 @@
                 addBtn.onclick = () => { document.getElementById(`add-form-${category}`).style.display = 'flex'; addBtn.style.display = 'none'; };
                 document.getElementById(`cancel-btn-${category}`).onclick = () => { document.getElementById(`add-form-${category}`).style.display = 'none'; addBtn.style.display = 'block'; };
                 
-                // Logik Simpan yang telah dikemas kini
                 document.getElementById(`save-btn-${category}`).onclick = async () => {
                     const name = document.getElementById(`name-input-${category}`).value.trim();
                     const url = document.getElementById(`url-input-${category}`).value.trim();
@@ -446,7 +445,7 @@
             }
         }
 
-        // FUNGSI openEditModal DIKEMAS KINI
+        // DIUBAH: Fungsi openEditModal dengan pemilih ikon
         function openEditModal(docId, data) {
             document.getElementById('edit-id-input').value = docId;
             document.getElementById('edit-name-input').value = data.name || '';
@@ -513,19 +512,32 @@
                 showLoading(true); try { await signInWithEmailAndPassword(auth, email, password); } catch (error) { showMessage("Ralat Log Masuk: " + error.message); } finally { showLoading(false); }
             };
 
+            // DIUBAH: Logik Butang Lupa Kata Laluan
+            document.getElementById('forgot-password-btn').onclick = () => {
+                const email = document.getElementById('login-email').value;
+                if (!email) {
+                    showMessage("Sila masukkan emel anda di ruangan Emel, kemudian tekan 'Lupa Kata Laluan?'.");
+                    return;
+                }
+                sendPasswordResetEmail(auth, email)
+                    .then(() => {
+                        showMessage("Berjaya! Pautan untuk set semula kata laluan telah dihantar ke emel anda.");
+                    })
+                    .catch((error) => {
+                        showMessage("Ralat: " + error.message);
+                    });
+            };
+
             document.getElementById('signout-btn').onclick = async () => { await signOut(auth); };
 
+            // DIUBAH: Logik Mod Admin yang lebih selamat
             document.getElementById('admin-toggle-btn').onclick = () => {
-                if (isAdminMode) { isAdminMode = false; } else {
-                    const key = prompt("PENTING DAN WAJIB !!!\n\nMasukkan Kod Akses. Sekiranya tiada, boleh cari Shamil©");
-                    if (key === SAFE_KEY) { isAdminMode = true; } else if (key) { showMessage("Kod Akses Salah!"); }
-                }
+                isAdminMode = !isAdminMode;
                 updateUIVisibility();
             };
 
             document.getElementById('edit-cancel-btn').onclick = () => { editModal.style.display = 'none'; };
             
-            // Logik Simpan Suntingan yang telah dikemas kini
             document.getElementById('edit-save-btn').onclick = async () => {
                 const userId = auth.currentUser.uid;
                 const docId = document.getElementById('edit-id-input').value;
@@ -544,11 +556,7 @@
                 const searchTerm = e.target.value.toLowerCase();
                 document.querySelectorAll('.link-item').forEach(item => {
                     const linkText = item.textContent.toLowerCase();
-                    if (linkText.includes(searchTerm)) {
-                        item.style.display = 'flex';
-                    } else {
-                        item.style.display = 'none';
-                    }
+                    item.style.display = linkText.includes(searchTerm) ? 'flex' : 'none';
                 });
             };
 
@@ -574,8 +582,10 @@
                 } else {
                     dashboardContainer.style.display = 'none'; authContainer.style.display = 'block';
                     document.getElementById('user-email-display').textContent = '';
-                    detachLinkListeners(); isAdminMode = false; updateUIVisibility();
+                    detachLinkListeners(); isAdminMode = false;
                 }
+                // Sentiasa panggil updateUIVisibility untuk tunjuk/sorok butang admin
+                updateUIVisibility();
             });
         }
         main();
