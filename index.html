@@ -156,6 +156,22 @@
         .icon-option.selected {
             border-color: var(--primary-accent); background-color: var(--primary-accent); color: white;
         }
+        #copy-success-message {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background-color: var(--button-green); color: white; padding: 10px 20px;
+            border-radius: 8px; z-index: 4000; display: none;
+            animation: fadeOut 3s forwards;
+        }
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        .footer-text-secondary {
+            font-size: 12px;
+            color: var(--subtitle-color);
+            margin: -10px 0 0 0; /* Untuk merapatkan dengan baris di bawahnya */
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -163,6 +179,7 @@
 </head>
 <body>
     <div id="loading-overlay">Loading...</div>
+    <div id="copy-success-message">URL disalin!</div>
     <canvas id="background-canvas"></canvas>
 
     <div class="container">
@@ -182,7 +199,10 @@
             <div id="signup-form" class="auth-form" style="display:none; padding:0; background:none;">
                 <input type="email" id="signup-email" class="form-input" placeholder="Email"><input type="password" id="signup-password" class="form-input" placeholder="Password (min. 6 characters)"><button id="signup-btn" class="form-button save-btn">Sign Up</button><button id="show-login-btn" class="auth-switch-link">Already have an account? Sign In</button>
             </div>
-            <footer class="footer" style="margin-top: 25px;"><p class="footer-text">A. Shamil ||©2025</p></footer>
+            <footer class="footer" style="margin-top: 25px;">
+                <p class="footer-text-secondary">TMK | SEKTOR PEMBELAJARAN | JPN PAHANG</p>
+                <p class="footer-text">Abd. Shamil Ahmad Sukri ||©2025</p>
+            </footer>
         </div>
 
         <div id="dashboard-container" class="dashboard">
@@ -197,7 +217,11 @@
             <input type="search" id="search-bar" placeholder="Cari pautan...">
             <div class="tab-nav" id="tab-navigation"></div>
             <div id="tab-content-container"></div>
-            <footer class="footer"><p class="footer-text" id="user-email-display"></p><p class="footer-text">Abd. Shamil Ahmad Sukri || &copy;2025</p></footer>
+            <footer class="footer">
+                <p class="footer-text" id="user-email-display"></p>
+                <p class="footer-text-secondary">TMK | SEKTOR PEMBELAJARAN | JPN PAHANG</p>
+                <p class="footer-text">Abd. Shamil Ahmad Sukri || &copy;2025</p>
+            </footer>
         </div>
     </div>
     
@@ -221,7 +245,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, where, onSnapshot, serverTimestamp, doc, deleteDoc, updateDoc, writeBatch, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, serverTimestamp, doc, deleteDoc, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // --- CONFIGURATION ---
@@ -235,7 +259,6 @@
         };
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'myhub-v2-app';
         
-        // KONSEP ADMIN DIBUANG
         const CATEGORIES = ['PROJECT', 'DRIVE', 'DOC', 'DASH'];
         const PREDEFINED_ICONS = ['✨', '🚀', '📁', '🔗', '📄', '💡', '🎯', '⭐', '🔧', '📈'];
 
@@ -244,7 +267,7 @@
         const auth = getAuth(app);
         
         let activeTab = CATEGORIES[0];
-        let isEditMode = false; // Menggantikan isAdminMode
+        let isEditMode = false;
         let linkUnsubscribe = [];
 
         const loadingOverlay = document.getElementById('loading-overlay');
@@ -254,6 +277,7 @@
         const messageBoxText = document.getElementById('message-box-text');
         const messageBoxActions = document.getElementById('message-box-actions');
         const editModal = document.getElementById('edit-modal');
+        const copySuccessMessage = document.getElementById('copy-success-message');
         
         function showLoading(show) { loadingOverlay.style.display = show ? 'flex' : 'none'; }
 
@@ -280,22 +304,32 @@
             const isUserLoggedIn = !!auth.currentUser;
             const editModeBtn = document.getElementById('edit-mode-btn');
 
-            // Tunjuk butang edit hanya jika pengguna log masuk
             editModeBtn.style.display = isUserLoggedIn ? 'flex' : 'none';
             
-            // Tukar ikon butang edit berdasarkan status mod sunting
             if (isUserLoggedIn) {
                 editModeBtn.innerHTML = isEditMode ? '✅' : '✏️';
                 editModeBtn.title = isEditMode ? 'Selesai Sunting' : 'Mod Sunting';
             }
             
-            // Tunjuk kawalan suntingan (tambah, edit, padam) hanya jika mod sunting aktif
             document.querySelectorAll('.edit-controls').forEach(el => {
                 el.style.display = isEditMode ? 'block' : 'none';
             });
             document.querySelectorAll('.item-actions').forEach(el => {
                 el.style.display = isEditMode ? 'flex' : 'none';
             });
+        }
+        
+        async function copyLinkUrl(url) {
+            try {
+                await navigator.clipboard.writeText(url);
+                copySuccessMessage.textContent = 'URL disalin!';
+                copySuccessMessage.style.display = 'block';
+                setTimeout(() => {
+                    copySuccessMessage.style.display = 'none';
+                }, 2500);
+            } catch (err) {
+                showMessage('Gagal menyalin URL. Sila salin secara manual.');
+            }
         }
 
         function generateTabsAndContent() {
@@ -310,7 +344,6 @@
                 const contentDiv = document.createElement('div');
                 contentDiv.id = category; contentDiv.className = 'tab-content';
                 contentDiv.style.display = category === activeTab ? 'block' : 'none';
-                // KELAS 'admin-controls' DITUKAR KEPADA 'edit-controls'
                 contentDiv.innerHTML = `<div id="button-container-${category}" class="button-container"></div>
                     <div class="add-button-section edit-controls">
                         <button class="add-button" id="add-btn-${category}">+ Tambah Pautan Baharu</button>
@@ -391,9 +424,14 @@
                                 </a>
                             </div>
                             <div class="item-actions">
+                                <button class="action-btn copy-link-btn" title="Salin URL" data-url="${linkData.url}">📋</button>
                                 <button class="action-btn edit-link-btn" title="Sunting">✏️</button>
                                 <button class="action-btn delete-link-btn" title="Padam">🗑️</button>
                             </div>`;
+                        linkItem.querySelector('.copy-link-btn').onclick = (e) => {
+                            e.preventDefault();
+                            copyLinkUrl(linkData.url);
+                        };
                         linkItem.querySelector('.edit-link-btn').onclick = () => openEditModal(docSnapshot.id, linkData);
                         linkItem.querySelector('.delete-link-btn').onclick = () => deleteLink(docSnapshot.id, linkData.name);
                         container.appendChild(linkItem);
@@ -401,7 +439,6 @@
                     updateUIVisibility();
                     new Sortable(container, {
                         animation: 150,
-                        // Hanya boleh seret jika dalam mod sunting
                         disabled: !isEditMode,
                         onEnd: async (evt) => {
                             const items = Array.from(evt.target.children);
@@ -518,10 +555,8 @@
 
             document.getElementById('signout-btn').onclick = async () => { await signOut(auth); };
 
-            // LOGIK BAHARU UNTUK BUTANG MOD SUNTING
             document.getElementById('edit-mode-btn').onclick = () => {
                 isEditMode = !isEditMode;
-                // Panggil semula setupLinkListeners untuk enable/disable fungsi seret
                 if (auth.currentUser) {
                     setupLinkListeners(auth.currentUser.uid);
                 }
@@ -552,8 +587,6 @@
                 });
             };
 
-            // LOGIK UNTUK TETAPAN DIBUANG
-
             onAuthStateChanged(auth, user => {
                 showLoading(false);
                 if (user) {
@@ -567,7 +600,6 @@
                     document.getElementById('user-email-display').textContent = '';
                     detachLinkListeners();
                 }
-                // Pastikan mod sunting sentiasa dimatikan semasa log masuk/log keluar
                 isEditMode = false;
                 updateUIVisibility();
             });
@@ -576,4 +608,3 @@
     </script>
 </body>
 </html>
-
