@@ -174,7 +174,7 @@
 </head>
 <body>
     <div id="loading-overlay">Loading...</div>
-    <div id="copy-success-message">URL telah disalin!</div>
+    <div id="copy-success-message">URL disalin!</div>
     <canvas id="background-canvas"></canvas>
 
     <div class="container">
@@ -384,6 +384,7 @@
         async function copyLinkUrl(url) {
             try {
                 await navigator.clipboard.writeText(url);
+                copySuccessMessage.textContent = 'URL disalin!';
                 copySuccessMessage.style.display = 'block';
                 setTimeout(() => {
                     copySuccessMessage.style.display = 'none';
@@ -416,19 +417,19 @@
                                 </a>
                             </div>
                             <div class="item-actions">
-                                <button class="action-btn copy-link-btn" title="Salin URL">📋</button>
+                                <button class="action-btn copy-link-btn" title="Salin URL" data-url="${linkData.url}">📋</button>
                                 <button class="action-btn edit-link-btn" title="Sunting">✏️</button>
                                 <button class="action-btn delete-link-btn" title="Padam">🗑️</button>
                             </div>`;
                         linkItem.querySelector('.copy-link-btn').onclick = (e) => {
                             e.preventDefault();
-                            copyLinkUrl(linkData.url);
+                            const urlToCopy = e.currentTarget.dataset.url;
+                            copyLinkUrl(urlToCopy);
                         };
                         linkItem.querySelector('.edit-link-btn').onclick = () => openEditModal(docSnapshot.id, linkData);
                         linkItem.querySelector('.delete-link-btn').onclick = () => deleteLink(docSnapshot.id, linkData.name);
                         container.appendChild(linkItem);
                     });
-                    updateUIVisibility();
                     new Sortable(container, {
                         animation: 150,
                         // Hanya boleh seret jika dalam mod sunting
