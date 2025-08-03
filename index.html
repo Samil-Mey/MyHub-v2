@@ -79,6 +79,7 @@
             display: flex; align-items: center; background: var(--link-bg);
             border-radius: 12px; transition: transform 0.2s ease, background-color 0.2s ease;
             word-wrap: break-word; cursor: grab;
+            position: relative; /* Penting untuk penempatan butang salin */
         }
         .link-item:hover { transform: translateY(-2px); background-color: var(--link-hover-bg); }
         .link-content { flex-grow: 1; text-align: left; padding: 16px 0 16px 20px; }
@@ -94,6 +95,20 @@
             align-items: center; justify-content: center; transition: background-color 0.2s, color 0.2s;
         }
         .action-btn:hover { color: var(--icon-hover-color); background-color: rgba(144, 144, 144, 0.2); }
+        
+        /* Gaya untuk butang salin yang sentiasa ada */
+        .copy-link-btn-static {
+            position: absolute;
+            right: 80px; /* Jarak dari kanan untuk elak bertindih dengan butang edit */
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        /* Tambah margin pada butang-butang lain untuk elak bertindih */
+        .item-actions .action-btn {
+            margin-left: 5px;
+        }
+
         .add-button-section { margin-top: 20px; }
         .add-button {
             background: none; border: 2px dashed var(--border-color); color: var(--subtitle-color);
@@ -119,9 +134,15 @@
         .cancel-btn { background-color: var(--button-grey); color: white; }
         .footer {
             margin-top: 40px; display: flex; flex-direction: column;
-            align-items: center; gap: 15px;
+            align-items: center; /* Menggunakan flex-start untuk merapatkan dari atas */
+            gap: 5px; /* Mengurangkan jarak antara elemen footer */
         }
-        .footer-text { font-size: 12px; color: var(--subtitle-color); }
+        .footer-text { 
+            font-size: 12px; 
+            color: var(--subtitle-color);
+            margin: 0; /* Mengeluarkan margin lalai */
+            line-height: 1.2; /* Mengurangkan jarak baris */
+        }
         .auth-switch-link {
             background: none; border: none; color: var(--primary-accent); cursor: pointer;
             text-decoration: underline; font-size: 14px; margin-top: 15px;
@@ -167,11 +188,6 @@
             80% { opacity: 1; }
             100% { opacity: 0; }
         }
-        .footer-text-secondary {
-            font-size: 12px;
-            color: var(--subtitle-color);
-            margin: -10px 0 0 0; /* Untuk merapatkan dengan baris di bawahnya */
-        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -199,8 +215,8 @@
             <div id="signup-form" class="auth-form" style="display:none; padding:0; background:none;">
                 <input type="email" id="signup-email" class="form-input" placeholder="Email"><input type="password" id="signup-password" class="form-input" placeholder="Password (min. 6 characters)"><button id="signup-btn" class="form-button save-btn">Sign Up</button><button id="show-login-btn" class="auth-switch-link">Already have an account? Sign In</button>
             </div>
-            <footer class="footer" style="margin-top: 25px;">
-                <p class="footer-text-secondary">TMK | SEKTOR PEMBELAJARAN | JPN PAHANG</p>
+            <footer class="footer">
+                <p class="footer-text">TMK | SEKTOR PEMBELAJARAN | JPN PAHANG</p>
                 <p class="footer-text">Abd. Shamil Ahmad Sukri ||©2025</p>
             </footer>
         </div>
@@ -219,7 +235,7 @@
             <div id="tab-content-container"></div>
             <footer class="footer">
                 <p class="footer-text" id="user-email-display"></p>
-                <p class="footer-text-secondary">TMK | SEKTOR PEMBELAJARAN | JPN PAHANG</p>
+                <p class="footer-text">TMK | SEKTOR PEMBELAJARAN | JPN PAHANG</p>
                 <p class="footer-text">Abd. Shamil Ahmad Sukri || &copy;2025</p>
             </footer>
         </div>
@@ -311,11 +327,17 @@
                 editModeBtn.title = isEditMode ? 'Selesai Sunting' : 'Mod Sunting';
             }
             
+            // Sembunyikan butang edit & padam bila mod sunting tidak aktif
             document.querySelectorAll('.edit-controls').forEach(el => {
                 el.style.display = isEditMode ? 'block' : 'none';
             });
             document.querySelectorAll('.item-actions').forEach(el => {
                 el.style.display = isEditMode ? 'flex' : 'none';
+            });
+            
+            // Tunjuk/sembunyi butang salin jika anda mahu ia sentiasa ada
+            document.querySelectorAll('.copy-link-btn').forEach(btn => {
+                btn.style.display = 'flex'; // Sentiasa tunjuk
             });
         }
         
@@ -428,10 +450,32 @@
                                 <button class="action-btn edit-link-btn" title="Sunting">✏️</button>
                                 <button class="action-btn delete-link-btn" title="Padam">🗑️</button>
                             </div>`;
-                        linkItem.querySelector('.copy-link-btn').onclick = (e) => {
+                        
+                        // Butang salin yang sentiasa ada
+                        const copyBtn = document.createElement('button');
+                        copyBtn.className = 'action-btn copy-link-btn';
+                        copyBtn.title = 'Salin URL';
+                        copyBtn.innerHTML = '📋';
+                        copyBtn.onclick = (e) => {
                             e.preventDefault();
                             copyLinkUrl(linkData.url);
                         };
+                        
+                        // Pastikan butang copy diletakkan di luar item-actions jika mod sunting TIDAK aktif
+                        if (!isEditMode) {
+                            linkItem.style.position = 'relative'; // Pastikan kedudukan relatif untuk butang salin
+                            const copyBtnStatic = copyBtn.cloneNode(true);
+                            copyBtnStatic.classList.add('copy-link-btn-static');
+                            linkItem.appendChild(copyBtnStatic);
+                            linkItem.querySelector('.item-actions').style.display = 'none';
+                        } else {
+                            linkItem.querySelector('.item-actions').style.display = 'flex';
+                            linkItem.querySelector('.copy-link-btn').onclick = (e) => {
+                                e.preventDefault();
+                                copyLinkUrl(linkData.url);
+                            };
+                        }
+
                         linkItem.querySelector('.edit-link-btn').onclick = () => openEditModal(docSnapshot.id, linkData);
                         linkItem.querySelector('.delete-link-btn').onclick = () => deleteLink(docSnapshot.id, linkData.name);
                         container.appendChild(linkItem);
