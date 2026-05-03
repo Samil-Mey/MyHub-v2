@@ -340,6 +340,12 @@
             }
         }
 
+            const CATEGORY_LABELS = {
+        PROJECT: '⭐ PENTING',
+        DRIVE: '📁 FAIL',
+        DOC: '📄 DOKUMEN',
+        DASH: '⚙️ SISTEM'
+        };
         function generateTabsAndContent() {
             const tabNavContainer = document.getElementById('tab-navigation');
             const tabContentContainer = document.getElementById('tab-content-container');
@@ -347,7 +353,7 @@
             CATEGORIES.forEach(category => {
                 const tabButton = document.createElement('button');
                 tabButton.className = `tab-link ${category === activeTab ? 'active' : ''}`;
-                tabButton.textContent = category; tabButton.onclick = (e) => openTab(e, category);
+               tabButton.textContent = CATEGORY_LABELS[category] || category; tabButton.onclick = (e) => openTab(e, category);
                 tabNavContainer.appendChild(tabButton);
                 const contentDiv = document.createElement('div');
                 contentDiv.id = category; contentDiv.className = 'tab-content';
